@@ -113,10 +113,7 @@ void CGUIRSSControl::Process(unsigned int currentTime, CDirtyRegionList &dirtyre
         m_rtl = iter->second.rtl;
         m_vecUrls = iter->second.url;
         m_vecIntervals = iter->second.interval;
-        if (m_scrollInfo.pixelSpeed > 0 && m_rtl)
-          m_scrollInfo.pixelSpeed *= -1;
-        else if (m_scrollInfo.pixelSpeed < 0 && !m_rtl)
-          m_scrollInfo.pixelSpeed *= -1;
+        m_scrollInfo.SetSpeed(m_label.scrollSpeed * (m_rtl ? -1 : 1));
       }
 
       dirty = true;
@@ -127,12 +124,9 @@ void CGUIRSSControl::Process(unsigned int currentTime, CDirtyRegionList &dirtyre
       {
         if (m_strRSSTags != "")
         {
-          CStdStringArray vecSplitTags;
-
-          StringUtils::SplitString(m_strRSSTags, ",", vecSplitTags);
-
-          for (unsigned int i = 0;i < vecSplitTags.size();i++)
-            m_pReader->AddTag(vecSplitTags[i]);
+          vector<string> tags = StringUtils::Split(m_strRSSTags, ",");
+          for (vector<string>::const_iterator i = tags.begin(); i != tags.end(); ++i)
+            m_pReader->AddTag(*i);
         }
         // use half the width of the control as spacing between feeds, and double this between feed sets
         float spaceWidth = (m_label.font) ? m_label.font->GetCharWidth(L' ') : 15;
@@ -149,7 +143,7 @@ void CGUIRSSControl::Process(unsigned int currentTime, CDirtyRegionList &dirtyre
       if ( m_stopped )
         m_scrollInfo.SetSpeed(0);
       else
-        m_scrollInfo.SetSpeed(m_label.scrollSpeed);
+        m_scrollInfo.SetSpeed(m_label.scrollSpeed * (m_rtl ? -1 : 1));
 
       if(m_label.font->UpdateScrollInfo(m_feed, m_scrollInfo))
         dirty = true;

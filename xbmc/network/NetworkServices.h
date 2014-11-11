@@ -20,7 +20,7 @@
  */
 
 #include "system.h"
-#include "settings/ISettingCallback.h"
+#include "settings/lib/ISettingCallback.h"
 
 #ifdef HAS_WEB_SERVER
 class CWebServer;
@@ -42,6 +42,7 @@ public:
   
   virtual bool OnSettingChanging(const CSetting *setting);
   virtual void OnSettingChanged(const CSetting *setting);
+  virtual bool OnSettingUpdate(CSetting* &setting, const char *oldSettingId, const TiXmlNode *oldSettingNode);
 
   void Start();
   void Stop(bool bWait);

@@ -34,6 +34,7 @@
 #include "filesystem/SpecialProtocol.h"
 #include "utils/EndianSwap.h"
 #include "utils/URIUtils.h"
+#include "utils/StringUtils.h"
 
 #ifdef TARGET_WINDOWS
 #pragma comment(lib,"liblzo2.lib")
@@ -130,7 +131,7 @@ bool CTextureBundleXPR::OpenBundle()
     // if we are the theme bundle, we only load if the user has chosen
     // a valid theme (or the skin has a default one)
     CStdString theme = CSettings::Get().GetString("lookandfeel.skintheme");
-    if (!theme.IsEmpty() && theme.CompareNoCase("SKINDEFAULT"))
+    if (!theme.empty() && !StringUtils::EqualsNoCase(theme, "SKINDEFAULT"))
     {
       CStdString themeXPR(URIUtils::ReplaceExtension(theme, ".xpr"));
       strPath = URIUtils::AddFileToFolder(g_graphicsContext.GetMediaDir(), "media");
@@ -250,7 +251,7 @@ bool CTextureBundleXPR::HasFile(const CStdString& Filename)
 
 void CTextureBundleXPR::GetTexturesFromPath(const CStdString &path, std::vector<CStdString> &textures)
 {
-  if (path.GetLength() > 1 && path[1] == ':')
+  if (path.size() > 1 && path[1] == ':')
     return;
 
   if (m_hFile == NULL && !OpenBundle())
@@ -259,11 +260,10 @@ void CTextureBundleXPR::GetTexturesFromPath(const CStdString &path, std::vector<
   CStdString testPath = Normalize(path);
   if (!URIUtils::HasSlashAtEnd(testPath))
     testPath += "\\";
-  int testLength = testPath.GetLength();
   std::map<CStdString, FileHeader_t>::iterator it;
   for (it = m_FileHeaders.begin(); it != m_FileHeaders.end(); ++it)
   {
-    if (it->first.Left(testLength).Equals(testPath))
+    if (StringUtils::StartsWithNoCase(it->first, testPath))
       textures.push_back(it->first);
   }
 }
@@ -286,7 +286,7 @@ bool CTextureBundleXPR::LoadFile(const CStdString& Filename, CAutoTexBuffer& Unp
     MEMORYSTATUSEX stat;
     stat.dwLength = sizeof(MEMORYSTATUSEX);
     GlobalMemoryStatusEx(&stat);
-    CLog::Log(LOGERROR, "Out of memory loading texture: %s (need %lu bytes, have %"PRIu64" bytes)", name.c_str(),
+    CLog::Log(LOGERROR, "Out of memory loading texture: %s (need %lu bytes, have %" PRIu64" bytes)", name.c_str(),
               file->second.UnpackedSize + file->second.PackedSize, stat.ullAvailPhys);
 #elif defined(TARGET_DARWIN) || defined(TARGET_FREEBSD)
     CLog::Log(LOGERROR, "Out of memory loading texture: %s (need %d bytes)", name.c_str(),
@@ -509,7 +509,8 @@ void CTextureBundleXPR::SetThemeBundle(bool themeBundle)
 CStdString CTextureBundleXPR::Normalize(const CStdString &name)
 {
   CStdString newName(name);
-  newName.Normalize();
-  newName.Replace('/','\\');
+  StringUtils::Trim(newName);
+  StringUtils::ToLower(newName);
+  StringUtils::Replace(newName, '/','\\');
   return newName;
 }

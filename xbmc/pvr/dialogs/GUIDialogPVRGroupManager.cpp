@@ -26,11 +26,11 @@
 #include "guilib/GUIWindowManager.h"
 #include "guilib/Key.h"
 #include "guilib/LocalizeStrings.h"
+#include "utils/StringUtils.h"
 
 #include "pvr/PVRManager.h"
 #include "pvr/channels/PVRChannelGroupsContainer.h"
 
-using namespace std;
 using namespace PVR;
 
 #define CONTROL_LIST_CHANNELS_LEFT    11
@@ -92,7 +92,7 @@ bool CGUIDialogPVRGroupManager::ActionButtonNewGroup(CGUIMessage &message)
 
   if (iControl == BUTTON_NEWGROUP)
   {
-    CStdString strGroupName = "";
+    std::string strGroupName = "";
     /* prompt for a group name */
     if (CGUIKeyboardFactory::ShowAndGetInput(strGroupName, g_localizeStrings.Get(19139), false))
     {
@@ -156,7 +156,7 @@ bool CGUIDialogPVRGroupManager::ActionButtonRenameGroup(CGUIMessage &message)
     if (!m_selectedGroup)
       return bReturn;
 
-    CStdString strGroupName(m_selectedGroup->GroupName());
+    std::string strGroupName(m_selectedGroup->GroupName());
     if (CGUIKeyboardFactory::ShowAndGetInput(strGroupName, g_localizeStrings.Get(19139), false))
     {
       if (strGroupName != "")
@@ -339,20 +339,22 @@ void CGUIDialogPVRGroupManager::Update()
 
     if (m_selectedGroup->IsInternalGroup())
     {
-      CStdString strNewLabel;
-      strNewLabel.Format("%s %s", g_localizeStrings.Get(19022), m_bIsRadio ? g_localizeStrings.Get(19024) : g_localizeStrings.Get(19023));
+      std::string strNewLabel = StringUtils::Format("%s %s",
+                                        g_localizeStrings.Get(19022).c_str(),
+                                        m_bIsRadio ? g_localizeStrings.Get(19024).c_str() : g_localizeStrings.Get(19023).c_str());
       SET_CONTROL_LABEL(CONTROL_UNGROUPED_LABEL, strNewLabel);
 
-      strNewLabel.Format("%s %s", g_localizeStrings.Get(19218), m_bIsRadio ? g_localizeStrings.Get(19024) : g_localizeStrings.Get(19023));
+      strNewLabel = StringUtils::Format("%s %s",
+                                        g_localizeStrings.Get(19218).c_str(),
+                                        m_bIsRadio ? g_localizeStrings.Get(19024).c_str() : g_localizeStrings.Get(19023).c_str());
       SET_CONTROL_LABEL(CONTROL_IN_GROUP_LABEL, strNewLabel);
     }
     else
     {
-      CStdString strNewLabel;
-      strNewLabel.Format("%s", g_localizeStrings.Get(19219));
+      std::string strNewLabel = StringUtils::Format("%s", g_localizeStrings.Get(19219).c_str());
       SET_CONTROL_LABEL(CONTROL_UNGROUPED_LABEL, strNewLabel);
 
-      strNewLabel.Format("%s %s", g_localizeStrings.Get(19220), m_selectedGroup->GroupName());
+      strNewLabel = StringUtils::Format("%s %s", g_localizeStrings.Get(19220).c_str(), m_selectedGroup->GroupName().c_str());
       SET_CONTROL_LABEL(CONTROL_IN_GROUP_LABEL, strNewLabel);
     }
 

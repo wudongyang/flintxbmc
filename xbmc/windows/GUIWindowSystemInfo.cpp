@@ -28,6 +28,7 @@
 #ifdef HAS_SYSINFO
 #include "utils/SystemInfo.h"
 #endif
+#include "utils/StringUtils.h"
 #include "storage/MediaManager.h"
 
 #define CONTROL_BT_STORAGE  94
@@ -56,8 +57,8 @@ bool CGUIWindowSystemInfo::OnMessage(CGUIMessage& message)
   case GUI_MSG_WINDOW_INIT:
     {
       CGUIWindow::OnMessage(message);
-      SET_CONTROL_LABEL(52, "XBMC " + g_infoManager.GetLabel(SYSTEM_BUILD_VERSION) +
-                            " (Compiled: " + g_infoManager.GetLabel(SYSTEM_BUILD_DATE)+")");
+      SET_CONTROL_LABEL(52, CSysInfo::GetAppName() + " " + g_infoManager.GetLabel(SYSTEM_BUILD_VERSION).c_str() +
+                            " (Compiled: " + g_infoManager.GetLabel(SYSTEM_BUILD_DATE).c_str() +")");
       CONTROL_ENABLE_ON_CONDITION(CONTROL_BT_PVR,
                                   PVR::CPVRManager::Get().IsStarted());
       return true;
@@ -96,7 +97,7 @@ void CGUIWindowSystemInfo::FrameMove()
     SetControlLabel(i++, "%s: %s", 150, NETWORK_IP_ADDRESS);
     SetControlLabel(i++, "%s %s", 13287, SYSTEM_SCREEN_RESOLUTION);
 #ifdef HAS_SYSINFO
-    SetControlLabel(i++, "%s %s", 13283, SYSTEM_KERNEL_VERSION);
+    SetControlLabel(i++, "%s %s", 13283, SYSTEM_OS_VERSION_INFO);
 #endif
     SetControlLabel(i++, "%s: %s", 12390, SYSTEM_UPTIME);
     SetControlLabel(i++, "%s: %s", 12394, SYSTEM_TOTALUPTIME);
@@ -197,7 +198,6 @@ void CGUIWindowSystemInfo::ResetLabels()
 
 void CGUIWindowSystemInfo::SetControlLabel(int id, const char *format, int label, int info)
 {
-  CStdString tmpStr;
-  tmpStr.Format(format, g_localizeStrings.Get(label).c_str(), g_infoManager.GetLabel(info).c_str());
+  CStdString tmpStr = StringUtils::Format(format, g_localizeStrings.Get(label).c_str(), g_infoManager.GetLabel(info).c_str());
   SET_CONTROL_LABEL(id, tmpStr);
 }

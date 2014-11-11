@@ -26,6 +26,7 @@
 
 #include "DVDInputStream.h"
 #include "FileItem.h"
+#include "threads/SystemClock.h"
 
 namespace XFILE {
 class IFile;
@@ -81,7 +82,7 @@ public:
    list of the input formats.
    \return The name of the input format
    */
-  CStdString      GetInputFormat();
+  std::string      GetInputFormat();
 
   /* returns m_pOtherStream */
   CDVDInputStream* GetOtherStream();
@@ -98,7 +99,7 @@ protected:
   XFILE::IRecordable*       m_pRecordable;
   bool                      m_eof;
   std::string               m_strContent;
-  unsigned int              m_iScanTimeout;
+  XbmcThreads::EndTime      m_ScanTimeout;
 };
 
 

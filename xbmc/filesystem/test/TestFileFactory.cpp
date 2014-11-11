@@ -22,6 +22,7 @@
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
 #include "test/TestUtils.h"
+#include "utils/StringUtils.h"
 
 #include "gtest/gtest.h"
 
@@ -32,12 +33,12 @@ protected:
   {
     if (CSettings::Get().Initialize())
     {
-      std::vector<CStdString> advancedsettings =
+      std::vector<std::string> advancedsettings =
         CXBMCTestUtils::Instance().getAdvancedSettingsFiles();
-      std::vector<CStdString> guisettings =
+      std::vector<std::string> guisettings =
         CXBMCTestUtils::Instance().getGUISettingsFiles();
-      
-      std::vector<CStdString>::iterator it;
+
+      std::vector<std::string>::iterator it;
       for (it = guisettings.begin(); it < guisettings.end(); it++)
         CSettings::Get().Load(*it);
 
@@ -45,7 +46,7 @@ protected:
         g_advancedSettings.ParseSettingsFile(*it);
 
       CSettings::Get().SetLoaded();
-    }    
+    }
   }
 
   ~TestFileFactory()
@@ -64,15 +65,15 @@ protected:
 TEST_F(TestFileFactory, Read)
 {
   XFILE::CFile file;
-  CStdString str;
+  std::string str;
   unsigned int size, i;
   unsigned char buf[16];
   int64_t count = 0;
 
-  std::vector<CStdString> urls =
+  std::vector<std::string> urls =
     CXBMCTestUtils::Instance().getTestFileFactoryReadUrls();
 
-  std::vector<CStdString>::iterator it;
+  std::vector<std::string>::iterator it;
   for (it = urls.begin(); it < urls.end(); it++)
   {
     std::cout << "Testing URL: " << *it << std::endl;
@@ -88,12 +89,12 @@ TEST_F(TestFileFactory, Read)
     std::cout << "File contents:" << std::endl;
     while ((size = file.Read(buf, sizeof(buf))) > 0)
     {
-      str.Format("  %08X", count);
+      str = StringUtils::Format("  %08X", count);
       std::cout << str << "  ";
       count += size;
       for (i = 0; i < size; i++)
       {
-        str.Format("%02X ", buf[i]);
+        str = StringUtils::Format("%02X ", buf[i]);
         std::cout << str;
       }
       while (i++ < sizeof(buf))
@@ -115,7 +116,7 @@ TEST_F(TestFileFactory, Read)
 TEST_F(TestFileFactory, Write)
 {
   XFILE::CFile file, inputfile;
-  CStdString str;
+  std::string str;
   unsigned int size, i;
   unsigned char buf[16];
   int64_t count = 0;
@@ -123,10 +124,10 @@ TEST_F(TestFileFactory, Write)
   str = CXBMCTestUtils::Instance().getTestFileFactoryWriteInputFile();
   ASSERT_TRUE(inputfile.Open(str));
 
-  std::vector<CStdString> urls =
+  std::vector<std::string> urls =
     CXBMCTestUtils::Instance().getTestFileFactoryWriteUrls();
 
-  std::vector<CStdString>::iterator it;
+  std::vector<std::string>::iterator it;
   for (it = urls.begin(); it < urls.end(); it++)
   {
     std::cout << "Testing URL: " << *it << std::endl;
@@ -150,12 +151,12 @@ TEST_F(TestFileFactory, Write)
     std::cout << "File contents:\n";
     while ((size = file.Read(buf, sizeof(buf))) > 0)
     {
-      str.Format("  %08X", count);
+      str = StringUtils::Format("  %08X", count);
       std::cout << str << "  ";
       count += size;
       for (i = 0; i < size; i++)
       {
-        str.Format("%02X ", buf[i]);
+        str = StringUtils::Format("%02X ", buf[i]);
         std::cout << str;
       }
       while (i++ < sizeof(buf))

@@ -233,6 +233,8 @@ bool CWinEventsSDL::MessagePump()
       case SDL_JOYAXISMOTION:
       case SDL_JOYBALLMOTION:
       case SDL_JOYHATMOTION:
+      case SDL_JOYDEVICEADDED:
+      case SDL_JOYDEVICEREMOVED:
         g_Joystick.Update(event);
         ret = true;
         break;
@@ -400,6 +402,17 @@ bool CWinEventsSDL::MessagePump()
   return ret;
 }
 
+size_t CWinEventsSDL::GetQueueSize()
+{
+  int ret;
+  SDL_Event event;
+
+  if (-1 == (ret = SDL_PeepEvents(&event, 0, SDL_PEEKEVENT, ~0)))
+    ret = 0;
+
+  return ret;
+}
+
 #ifdef TARGET_DARWIN_OSX
 bool CWinEventsSDL::ProcessOSXShortcuts(SDL_Event& event)
 {
@@ -410,7 +423,16 @@ bool CWinEventsSDL::ProcessOSXShortcuts(SDL_Event& event)
 
   if (cmd && event.key.type == SDL_KEYDOWN)
   {
-    switch(event.key.keysym.sym)
+    char keysymbol = event.key.keysym.sym;
+
+    // if the unicode is in the ascii range
+    // use this instead for getting the real
+    // character based on the used keyboard layout
+    // see http://lists.libsdl.org/pipermail/sdl-libsdl.org/2004-May/043716.html
+    if (!(event.key.keysym.unicode & 0xff80))
+      keysymbol = event.key.keysym.unicode;
+
+    switch(keysymbol)
     {
     case SDLK_q:  // CMD-q to quit
       if (!g_application.m_bStop)
@@ -425,7 +447,10 @@ bool CWinEventsSDL::ProcessOSXShortcuts(SDL_Event& event)
       g_application.OnAction(CAction(ACTION_TAKE_SCREENSHOT));
       return true;
 
-    case SDLK_h: // CMD-h to hide (but we minimize for now)
+    case SDLK_h: // CMD-h to hide
+      g_Windowing.Hide();
+      return true;
+
     case SDLK_m: // CMD-m to minimize
       CApplicationMessenger::Get().Minimize();
       return true;

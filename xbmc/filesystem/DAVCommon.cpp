@@ -29,9 +29,8 @@ using namespace XFILE;
  *
  * if pElement is <DAV:foo> and value is foo then ValueWithoutNamespace is true
  */
-bool CDAVCommon::ValueWithoutNamespace(const TiXmlNode *pNode, const CStdString& value)
+bool CDAVCommon::ValueWithoutNamespace(const TiXmlNode *pNode, const std::string& value)
 {
-  CStdStringArray tag;
   const TiXmlElement *pElement;
 
   if (!pNode)
@@ -46,7 +45,7 @@ bool CDAVCommon::ValueWithoutNamespace(const TiXmlNode *pNode, const CStdString&
     return false;
   }
 
-  StringUtils::SplitString(pElement->Value(), ":", tag, 2);
+  std::vector<std::string> tag = StringUtils::Split(pElement->ValueStr(), ":", 2);
 
   if (tag.size() == 1 && tag[0] == value)
   {
@@ -67,15 +66,15 @@ bool CDAVCommon::ValueWithoutNamespace(const TiXmlNode *pNode, const CStdString&
 /*
  * Search for <status> and return its content
  */
-CStdString CDAVCommon::GetStatusTag(const TiXmlElement *pElement)
+std::string CDAVCommon::GetStatusTag(const TiXmlElement *pElement)
 {
   const TiXmlElement *pChild;
 
-  for (pChild = pElement->FirstChild()->ToElement(); pChild != 0; pChild = pChild->NextSibling()->ToElement())
+  for (pChild = pElement->FirstChildElement(); pChild != 0; pChild = pChild->NextSiblingElement())
   {
     if (ValueWithoutNamespace(pChild, "status"))
     {
-      return CStdString(pChild->GetText());
+      return pChild->NoChildren() ? "" : pChild->FirstChild()->ValueStr();
     }
   }
 

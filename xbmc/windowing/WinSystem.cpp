@@ -21,8 +21,9 @@
 #include "WinSystem.h"
 #include "guilib/GraphicContext.h"
 #include "settings/DisplaySettings.h"
-#include "settings/Setting.h"
+#include "settings/lib/Setting.h"
 #include "settings/Settings.h"
+#include "utils/StringUtils.h"
 
 using namespace std;
 
@@ -68,9 +69,9 @@ void CWinSystemBase::UpdateDesktopResolution(RESOLUTION_INFO& newRes, int screen
   newRes.iHeight = height;
   newRes.iScreenWidth = width;
   newRes.iScreenHeight = height;
-  newRes.strMode.Format("%dx%d", width, height);
+  newRes.strMode = StringUtils::Format("%dx%d", width, height);
   if (refreshRate > 1)
-    newRes.strMode.AppendFormat("@ %.2f", refreshRate);
+    newRes.strMode += StringUtils::Format("@ %.2f", refreshRate);
   if (dwFlags & D3DPRESENTFLAG_INTERLACED)
     newRes.strMode += "i";
   if (dwFlags & D3DPRESENTFLAG_MODE3DTB)
@@ -78,7 +79,7 @@ void CWinSystemBase::UpdateDesktopResolution(RESOLUTION_INFO& newRes, int screen
   if (dwFlags & D3DPRESENTFLAG_MODE3DSBS)
     newRes.strMode += "sbs";
   if (screen > 0)
-    newRes.strMode.Format("%s #%d", newRes.strMode, screen + 1);
+    newRes.strMode = StringUtils::Format("%s #%d", newRes.strMode.c_str(), screen + 1);
   if (refreshRate > 1)
     newRes.strMode += " - Full Screen";
 }
@@ -128,7 +129,8 @@ static void AddResolution(vector<RESOLUTION_WHR> &resolutions, unsigned int addi
   int flags  = resInfo.dwFlags & D3DPRESENTFLAG_MODEMASK;
   float refreshrate = resInfo.fRefreshRate;
 
-  for (unsigned int idx = 0; idx < resolutions.size(); idx++)
+  // don't touch RES_DESKTOP
+  for (unsigned int idx = 1; idx < resolutions.size(); idx++)
     if (   resolutions[idx].width == width
         && resolutions[idx].height == height
         &&(resolutions[idx].flags & D3DPRESENTFLAG_MODEMASK) == flags)
@@ -168,7 +170,8 @@ vector<RESOLUTION_WHR> CWinSystemBase::ScreenResolutions(int screen, float refre
   }
 
   // Can't assume a sort order
-  sort(resolutions.begin(), resolutions.end(), resSortPredicate);
+  // don't touch RES_DESKTOP which is index 0
+  sort(resolutions.begin()+1, resolutions.end(), resSortPredicate);
 
   return resolutions;
 }

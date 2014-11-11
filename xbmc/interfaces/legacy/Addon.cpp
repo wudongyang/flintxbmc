@@ -25,6 +25,7 @@
 #include "addons/GUIDialogAddonSettings.h"
 #include "guilib/GUIWindowManager.h"
 #include "GUIUserMessages.h"
+#include "utils/StringUtils.h"
 
 using namespace ADDON;
 
@@ -36,7 +37,7 @@ namespace XBMCAddon
 
     String Addon::getAddonVersion() { return languageHook == NULL ? emptyString : languageHook->GetAddonVersion(); }
 
-    Addon::Addon(const char* cid) throw (AddonException) : AddonClass("Addon") 
+    Addon::Addon(const char* cid) throw (AddonException)
     {
       String id(cid ? cid : emptyString);
 
@@ -69,8 +70,8 @@ namespace XBMCAddon
         else
         {
           throw AddonException("Could not get AddonPtr given a script id of %s."
-                               "If you are trying to use 'os.getcwd' to set the path, you cannot do that in a %s plugin.", 
-                               id.c_str(), version.Print().c_str());
+                               "If you are trying to use 'os.getcwd' to set the path, you cannot do that in a version %s plugin.", 
+                               id.c_str(), version.asString().c_str());
         }
       }
 
@@ -103,7 +104,7 @@ namespace XBMCAddon
         if (dialog->GetCurrentID() == addon->ID())
         {
           CGUIMessage message(GUI_MSG_SETTING_UPDATED,0,0);
-          std::vector<CStdString> params;
+          std::vector<std::string> params;
           params.push_back(id);
           params.push_back(value);
           message.SetStringParams(params);
@@ -150,16 +151,14 @@ namespace XBMCAddon
         return pAddon->Profile();
       else if (strcmpi(id, "stars") == 0)
       {
-        CStdString tmps;
-        tmps.Format("%d", pAddon->Stars());
-        return tmps;
+        return StringUtils::Format("%d", pAddon->Stars());
       }
       else if (strcmpi(id, "summary") == 0)
         return pAddon->Summary();
       else if (strcmpi(id, "type") == 0)
         return ADDON::TranslateType(pAddon->Type());
       else if (strcmpi(id, "version") == 0)
-        return String(pAddon->Version().c_str());
+        return pAddon->Version().asString();
       else
         throw AddonException("'%s' is an invalid Id", id);
     }

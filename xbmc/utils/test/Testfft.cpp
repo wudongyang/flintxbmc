@@ -20,6 +20,7 @@
 
 #include "utils/fft.h"
 #include "utils/StdString.h"
+#include "utils/StringUtils.h"
 
 #include "gtest/gtest.h"
 
@@ -254,34 +255,16 @@ TEST(Testfft, fft)
 {
   int i;
   float vardata[REFDATA_NUMELEMENTS];
-  CStdString refstr, varstr;
+  float res;
 
   memcpy(vardata, refdata, sizeof(refdata));
-  fft(vardata, REFDATA_NUMELEMENTS/2, 1);
+  fft(vardata - 1, REFDATA_NUMELEMENTS/2, 1);
+  // let's see if it's okay enough
+  fft(vardata -1, REFDATA_NUMELEMENTS/2, -1);
   for (i = 0; i < REFDATA_NUMELEMENTS; i++)
   {
-    /* To more consistently test the resulting floating point numbers, they
-     * are converted to strings and the strings are tested for equality.
-     */
-    refstr.Format("%.6f", reffftdata[i]);
-    varstr.Format("%.6f", vardata[i]);
-    EXPECT_STREQ(refstr.c_str(), varstr.c_str());
-  }
-}
-
-TEST(Testfft, fft_inverse)
-{
-  int i;
-  float vardata[REFDATA_NUMELEMENTS];
-  CStdString refstr, varstr;
-
-  memcpy(vardata, refdata, sizeof(refdata));
-  fft(vardata, REFDATA_NUMELEMENTS/2, -1);
-  for (i = 0; i < REFDATA_NUMELEMENTS; i++)
-  {
-    refstr.Format("%.6f", reffftinversedata[i]);
-    varstr.Format("%.6f", vardata[i]);
-    EXPECT_STREQ(refstr.c_str(), varstr.c_str());
+    res =  vardata[i] / (REFDATA_NUMELEMENTS / 2);
+    EXPECT_NEAR(res, refdata[i], 0.000001);
   }
 }
 
@@ -295,8 +278,8 @@ TEST(Testfft, twochannelrfft)
   twochannelrfft(vardata, REFDATA_NUMELEMENTS/2);
   for (i = 0; i < REFDATA_NUMELEMENTS; i++)
   {
-    refstr.Format("%.6f", reftwochannelrfftdata[i]);
-    varstr.Format("%.6f", vardata[i]);
+    refstr = StringUtils::Format("%.6f", reftwochannelrfftdata[i]);
+    varstr = StringUtils::Format("%.6f", vardata[i]);
     EXPECT_STREQ(refstr.c_str(), varstr.c_str());
   }
 }
@@ -311,8 +294,8 @@ TEST(Testfft, twochanwithwindow)
   twochanwithwindow(vardata, REFDATA_NUMELEMENTS/2);
   for (i = 0; i < REFDATA_NUMELEMENTS; i++)
   {
-    refstr.Format("%.6f", reftwochanwithwindowdata[i]);
-    varstr.Format("%.6f", vardata[i]);
+    refstr = StringUtils::Format("%.6f", reftwochanwithwindowdata[i]);
+    varstr = StringUtils::Format("%.6f", vardata[i]);
     EXPECT_STREQ(refstr.c_str(), varstr.c_str());
   }
 }

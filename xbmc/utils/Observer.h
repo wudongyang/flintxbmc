@@ -21,6 +21,7 @@
  */
 
 #include "threads/CriticalSection.h"
+#include <vector>
 
 class Observable;
 class ObservableMessageJob;
@@ -38,6 +39,8 @@ typedef enum
   ObservableMessageTimers,
   ObservableMessageTimersReset,
   ObservableMessageRecordings,
+  ObservableMessagePeripheralsChanged,
+  ObservableMessageManagerStateChanged
 } ObservableMessage;
 
 class Observer

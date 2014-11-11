@@ -1,11 +1,11 @@
-# XBMC Media Center language file
+# Kodi Media Center language file
 msgid ""
 msgstr ""
 "Project-Id-Version: XBMC Main\n"
 "Report-Msgid-Bugs-To: http://trac.xbmc.org/\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: XBMC Translation Team\n"
+"Last-Translator: Kodi Translation Team\n"
 "Language-Team: Maltese (http://www.transifex.com/projects/p/xbmc-main/language/mt/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -46,8 +46,8 @@ msgid "Weather"
 msgstr "It-Temp"
 
 msgctxt "#9"
-msgid "xbmc media center"
-msgstr "xbmc media center"
+msgid "Kodi media center"
+msgstr "Kodi media center"
 
 msgctxt "#11"
 msgid "Monday"
@@ -125,17 +125,109 @@ msgctxt "#32"
 msgid "December"
 msgstr "Diċembru"
 
+msgctxt "#41"
+msgid "Mon"
+msgstr "Tne"
+
+msgctxt "#42"
+msgid "Tue"
+msgstr "Tli"
+
+msgctxt "#43"
+msgid "Wed"
+msgstr "Erb"
+
+msgctxt "#44"
+msgid "Thu"
+msgstr "Ħam"
+
+msgctxt "#45"
+msgid "Fri"
+msgstr "Ġim"
+
+msgctxt "#46"
+msgid "Sat"
+msgstr "Sib"
+
 msgctxt "#47"
 msgid "Sun"
-msgstr "Xemx"
+msgstr "Ħad"
+
+msgctxt "#51"
+msgid "Jan"
+msgstr "Jan"
+
+msgctxt "#52"
+msgid "Feb"
+msgstr "Fra"
+
+msgctxt "#53"
+msgid "Mar"
+msgstr "Mar"
+
+msgctxt "#54"
+msgid "Apr"
+msgstr "Apr"
 
 msgctxt "#55"
 msgid "May"
-msgstr "Mejju"
+msgstr "Mej"
+
+msgctxt "#56"
+msgid "Jun"
+msgstr "Ġun"
+
+msgctxt "#57"
+msgid "Jul"
+msgstr "Lul"
+
+msgctxt "#58"
+msgid "Aug"
+msgstr "Aww"
 
 msgctxt "#59"
 msgid "Sep"
-msgstr "Issettja"
+msgstr "Set"
+
+msgctxt "#60"
+msgid "Oct"
+msgstr "Ott"
+
+msgctxt "#61"
+msgid "Nov"
+msgstr "Nov"
+
+msgctxt "#62"
+msgid "Dec"
+msgstr "Diċ"
+
+msgctxt "#83"
+msgid "W"
+msgstr "ok"
+
+msgctxt "#87"
+msgid "VAR"
+msgstr "VAR"
+
+msgctxt "#88"
+msgid "South"
+msgstr "Nofsinhar"
+
+msgctxt "#89"
+msgid "North"
+msgstr "Tramuntana"
+
+msgctxt "#90"
+msgid "West"
+msgstr "Punent"
+
+msgctxt "#91"
+msgid "East"
+msgstr "Lvant"
+
+msgctxt "#92"
+msgid "Variable"
+msgstr "Varjabbli"
 
 msgctxt "#98"
 msgid "View: Auto"
@@ -232,10 +324,6 @@ msgstr "Tikkonferma li Tikkopja"
 msgctxt "#121"
 msgid "Confirm file move"
 msgstr "Tikkonferma li Tmexxi"
-
-msgctxt "#122"
-msgid "Confirm file delete?"
-msgstr "Tikkonferma li Tħassar"
 
 msgctxt "#123"
 msgid "Copy these files?"
@@ -689,17 +777,9 @@ msgctxt "#249"
 msgid "Music"
 msgstr "Mużika"
 
-msgctxt "#250"
-msgid "Visualization"
-msgstr "Viżwalizzazzjoni"
-
 msgctxt "#251"
 msgid "Select destination directory"
 msgstr "Għażel destinazzjoni"
-
-msgctxt "#252"
-msgid "Output stereo to all speakers"
-msgstr "Output Speakers kollha"
 
 msgctxt "#253"
 msgid "Number of channels"
@@ -738,7 +818,7 @@ msgid "Scripts output"
 msgstr "Output tal-iskripts"
 
 msgctxt "#263"
-msgid "Allow control of XBMC via HTTP"
+msgid "Allow control of Kodi via HTTP"
 msgstr "HTTP server:"
 
 msgctxt "#264"
@@ -985,17 +1065,9 @@ msgctxt "#336"
 msgid "Framerate conversion"
 msgstr "Framerate Conversion"
 
-msgctxt "#337"
-msgid "Audio output"
-msgstr "Output Awdjo:"
-
 msgctxt "#338"
-msgid "Analog"
-msgstr "Analog"
-
-msgctxt "#339"
-msgid "Optical/Coax"
-msgstr "Diġitali"
+msgid "Fixed"
+msgstr "Mgħaġġel"
 
 msgctxt "#340"
 msgid "Various artists"
@@ -1289,10 +1361,6 @@ msgctxt "#419"
 msgid "High"
 msgstr "Filmati/Atturi"
 
-msgctxt "#420"
-msgid "HDMI"
-msgstr "Filmati/Snin"
-
 msgctxt "#422"
 msgid "Delete album info"
 msgstr "Ħassar informazzjoni dwar albums"
@@ -1352,10 +1420,6 @@ msgstr "Niftaħ il-fajl"
 msgctxt "#439"
 msgid "Cache"
 msgstr "Cache"
-
-msgctxt "#440"
-msgid "Harddisk"
-msgstr "Harddisk"
 
 msgctxt "#441"
 msgid "UDF"
@@ -1469,10 +1533,6 @@ msgctxt "#470"
 msgid "Credits"
 msgstr "Krediti"
 
-msgctxt "#471"
-msgid "Modchip"
-msgstr "Modchip"
-
 msgctxt "#474"
 msgid "Off"
 msgstr "Mitfi"
@@ -1506,8 +1566,8 @@ msgid "Audio options"
 msgstr "Opzjoni Awdjo"
 
 msgctxt "#482"
-msgid "About XBMC"
-msgstr "Dwar XBMC"
+msgid "About Kodi"
+msgstr "Dwar Kodi"
 
 msgctxt "#485"
 msgid "Delete album"
@@ -1592,10 +1652,6 @@ msgstr "Naqra Media Info mill-fajls"
 msgctxt "#507"
 msgid "Sort by: Usage"
 msgstr "Ordni: Użu"
-
-msgctxt "#510"
-msgid "Enable visualizations"
-msgstr "Enable Visualisations"
 
 msgctxt "#511"
 msgid "Enable video mode switching"
@@ -1724,6 +1780,10 @@ msgstr "DVD"
 msgctxt "#544"
 msgid "Media info"
 msgstr "Info tal-Media"
+
+msgctxt "#549"
+msgid "Number"
+msgstr "Numru"
 
 msgctxt "#550"
 msgid "Sort by: %s"
@@ -1989,14 +2049,6 @@ msgctxt "#636"
 msgid "Custom"
 msgstr "Custom"
 
-msgctxt "#637"
-msgid "Replay gain"
-msgstr "Replay Gain"
-
-msgctxt "#638"
-msgid "Replaygain volume adjustments"
-msgstr "Replay Gain Mode"
-
 msgctxt "#639"
 msgid "Use track levels"
 msgstr "Uża Track Levels"
@@ -2004,18 +2056,6 @@ msgstr "Uża Track Levels"
 msgctxt "#640"
 msgid "Use album levels"
 msgstr "Uża Album Levels"
-
-msgctxt "#641"
-msgid "PreAmp Level - Replay gained files"
-msgstr "PreAmp Level - Replay Gained Files"
-
-msgctxt "#642"
-msgid "PreAmp Level - Non replay gained files"
-msgstr "PreAmp Level - Non Replay Gained Files"
-
-msgctxt "#643"
-msgid "Avoid clipping on replay gained files"
-msgstr "Avoid Clipping on Replay Gained Files"
 
 msgctxt "#644"
 msgid "Crop black bars"
@@ -2173,6 +2213,14 @@ msgctxt "#734"
 msgid "No pass"
 msgstr "Bla Sigriet"
 
+msgctxt "#736"
+msgid "Style"
+msgstr "Stil"
+
+msgctxt "#737"
+msgid "Colour"
+msgstr "Kulur"
+
 msgctxt "#738"
 msgid "Normal"
 msgstr "Normali"
@@ -2298,7 +2346,7 @@ msgid "Remote control"
 msgstr "Remote Events"
 
 msgctxt "#791"
-msgid "Allow programs on this system to control XBMC"
+msgid "Allow programs on this system to control Kodi"
 msgstr "Attiva Remote Events"
 
 msgctxt "#792"
@@ -2310,8 +2358,12 @@ msgid "Port range"
 msgstr "Port Range tar-Remote Events"
 
 msgctxt "#794"
-msgid "Allow programs on other systems to control XBMC"
+msgid "Allow programs on other systems to control Kodi"
 msgstr "Irċievi events minn kompjuters oħra"
+
+msgctxt "#798"
+msgid "Internet access"
+msgstr "Internet"
 
 msgctxt "#998"
 msgid "Add Music..."
@@ -2326,8 +2378,8 @@ msgid "Unable to connect"
 msgstr "Unable to connect"
 
 msgctxt "#1002"
-msgid "XBMC was unable to connect to the network location."
-msgstr "XBMC ma rnexxielux jaqbad mad-destinazzjoni tan-network."
+msgid "Kodi was unable to connect to the network location."
+msgstr "Kodi ma rnexxielux jaqbad mad-destinazzjoni tan-network."
 
 msgctxt "#1003"
 msgid "This could be due to the network not being connected."
@@ -2489,10 +2541,6 @@ msgctxt "#1043"
 msgid "Program Add-ons"
 msgstr "Plagins tal-Programmi"
 
-msgctxt "#1044"
-msgid "Set plugin thumb"
-msgstr "Isettja Tambnejl tal-Plagin"
-
 msgctxt "#1045"
 msgid "Add-on settings"
 msgstr "Settings tal-Plagin"
@@ -2617,6 +2665,14 @@ msgctxt "#1235"
 msgid "Programs & pictures & video"
 msgstr "Programmi, Stampi u Films"
 
+msgctxt "#1381"
+msgid "Extreme"
+msgstr "Estrem"
+
+msgctxt "#1390"
+msgid "Settings"
+msgstr "Settings"
+
 msgctxt "#1396"
 msgid "Drifting"
 msgstr "Drifting"
@@ -2692,6 +2748,10 @@ msgstr "T-Storm"
 msgctxt "#1418"
 msgid "Thunderstorms"
 msgstr "Tempesti"
+
+msgctxt "#1427"
+msgid "Smoke"
+msgstr "Baxx"
 
 msgctxt "#1439"
 msgid "and"
@@ -2817,13 +2877,25 @@ msgctxt "#10034"
 msgid "Settings - Profiles"
 msgstr "Settings->Profili"
 
-msgctxt "#10100"
-msgid "Yes/No dialog"
-msgstr "Kaxxa Iva/Le"
+msgctxt "#10036"
+msgid "Basic"
+msgstr "Bażiku"
 
-msgctxt "#10101"
-msgid "Progress dialog"
-msgstr "Kaxxa Progress"
+msgctxt "#10037"
+msgid "Standard"
+msgstr "Standard"
+
+msgctxt "#10038"
+msgid "Advanced"
+msgstr "Avvanzat"
+
+msgctxt "#10039"
+msgid "Expert"
+msgstr "Espert"
+
+msgctxt "#10043"
+msgid "Help"
+msgstr "għajnuna"
 
 msgctxt "#10131"
 msgid "Lock settings"
@@ -2905,17 +2977,9 @@ msgctxt "#10524"
 msgid "Movie info"
 msgstr "Info tal-Filmat"
 
-msgctxt "#12000"
-msgid "Select dialog"
-msgstr "Għażel kaxxa"
-
 msgctxt "#12001"
 msgid "Music/Info"
 msgstr "Diski/info"
-
-msgctxt "#12002"
-msgid "Dialog OK"
-msgstr "Kaxxa OK"
 
 msgctxt "#12003"
 msgid "Videos/Info"
@@ -2928,14 +2992,6 @@ msgstr "Programmi/Info"
 msgctxt "#12005"
 msgid "Fullscreen video"
 msgstr "Stampa Sħiħa"
-
-msgctxt "#12006"
-msgid "Audio visualization"
-msgstr "Viżwalizzazzjoni"
-
-msgctxt "#12008"
-msgid "File stacking dialog"
-msgstr "Kaxxa Filestacking"
 
 msgctxt "#12009"
 msgid "Rebuild index..."
@@ -3092,10 +3148,6 @@ msgstr "Aċċess Miżmum"
 msgctxt "#12346"
 msgid "Password retry limit exceeded."
 msgstr "Ċansijiet tas-sigriet użati kollha."
-
-msgctxt "#12347"
-msgid "The system will now shut off."
-msgstr "L-Xbox ser tintefa."
 
 msgctxt "#12348"
 msgid "Item locked"
@@ -3260,10 +3312,6 @@ msgstr "Gateway:"
 msgctxt "#13161"
 msgid "Primary DNS"
 msgstr "Primary DNS"
-
-msgctxt "#13162"
-msgid "Initialize failed"
-msgstr "Ma ġiex imtella"
 
 msgctxt "#13170"
 msgid "Never"
@@ -3433,6 +3481,10 @@ msgctxt "#13302"
 msgid "Fan speed override"
 msgstr "Kontroll veloċita’ tal-Fan"
 
+msgctxt "#13303"
+msgid "Fonts"
+msgstr "Font"
+
 msgctxt "#13305"
 msgid "Show RSS news feeds"
 msgstr "Attiva RSS Feeds"
@@ -3446,8 +3498,8 @@ msgid "Do you wish to reboot your system"
 msgstr "Tixtieq tirributja l-xbox"
 
 msgctxt "#13309"
-msgid "instead of just XBMC?"
-msgstr "minflok l-XBMC biss?"
+msgid "instead of just Kodi?"
+msgstr "minflok l-Kodi biss?"
 
 msgctxt "#13310"
 msgid "Zoom effect"
@@ -3593,10 +3645,6 @@ msgctxt "#13349"
 msgid "Scan for new content"
 msgstr "Fittex għal kontenut ġdid"
 
-msgctxt "#13350"
-msgid "Now playing..."
-msgstr "Indoqq bħalissa..."
-
 msgctxt "#13351"
 msgid "Album information"
 msgstr "Informazzjoni dwar l-album"
@@ -3697,21 +3745,9 @@ msgctxt "#13388"
 msgid "Preset"
 msgstr "Presets"
 
-msgctxt "#13389"
-msgid "There are no presets available\nfor this visualization"
-msgstr "There are no presets available for this visualisation"
-
-msgctxt "#13390"
-msgid "There are no settings available\nfor this visualization"
-msgstr "There are no settings available for this visualisation"
-
 msgctxt "#13391"
 msgid "Eject/Load"
 msgstr "Eject/Load"
-
-msgctxt "#13392"
-msgid "Use visualization if playing audio"
-msgstr "Uża Visualisation if playing audio"
 
 msgctxt "#13393"
 msgid "Calculate size"
@@ -3788,6 +3824,30 @@ msgstr "fanspeed minimu"
 msgctxt "#13415"
 msgid "Render method"
 msgstr "Metodu ta' Render"
+
+msgctxt "#13441"
+msgid "Use MPEG-2 VDPAU"
+msgstr "Uża MPEG-2 VDPAU"
+
+msgctxt "#13443"
+msgid "Use MPEG-4 VDPAU"
+msgstr "Uża MPEG-4 VDPAU"
+
+msgctxt "#13445"
+msgid "Use VC-1 VDPAU"
+msgstr "Uża VC-1 VDPAU"
+
+msgctxt "#13447"
+msgid "Use MPEG-2 VAAPI"
+msgstr "Uża MPEG-2 VAAPI"
+
+msgctxt "#13449"
+msgid "Use MPEG-4 VAAPI"
+msgstr "Uża MPEG-4 VAAPI"
+
+msgctxt "#13451"
+msgid "Use VC-1 VAAPI"
+msgstr "Uża VC-1 VAAPI"
 
 msgctxt "#13507"
 msgid "Medium"
@@ -3901,25 +3961,13 @@ msgctxt "#14024"
 msgid "Enter the nearest large town"
 msgstr "Daħħal l-aktar Villaġġ qrib tiegħek"
 
-msgctxt "#14025"
-msgid "Video/Audio/DVD cache - Harddisk"
-msgstr "Video/Audio/DVD Cache - Harddisk"
-
 msgctxt "#14026"
 msgid "Video cache - DVD-ROM"
 msgstr "Video Cache - DVDRom"
 
-msgctxt "#14028"
-msgid "Internet"
-msgstr "Internet"
-
 msgctxt "#14030"
 msgid "Audio cache - DVD-ROM"
 msgstr "Audio Cache - DVDRom"
-
-msgctxt "#14032"
-msgid "Internet"
-msgstr "Internet"
 
 msgctxt "#14034"
 msgid "DVD cache - DVD-ROM"
@@ -3934,8 +3982,8 @@ msgid "Network settings changed"
 msgstr "Settings tan-network mibdula"
 
 msgctxt "#14039"
-msgid "XBMC requires to restart to change your"
-msgstr "XBMC tinhtieg reboot biex jigu affettwati"
+msgid "Kodi requires to restart to change your"
+msgstr "Kodi tinhtieg reboot biex jigu affettwati"
 
 msgctxt "#14040"
 msgid "network setup.  Would you like to restart now?"
@@ -4073,9 +4121,29 @@ msgctxt "#14077"
 msgid "Remove from favourites"
 msgstr "Neħħi mill-Favoriti"
 
+msgctxt "#14078"
+msgid "Colours"
+msgstr "Kuluri"
+
+msgctxt "#14080"
+msgid "Timezone"
+msgstr "Żona tal-ħin"
+
+msgctxt "#14090"
+msgid "International"
+msgstr "Internazzjonali"
+
+msgctxt "#14093"
+msgid "Security"
+msgstr "Sigurtà"
+
 msgctxt "#14098"
 msgid "Play"
 msgstr "Ara"
+
+msgctxt "#15014"
+msgid "Keep"
+msgstr "Żomm"
 
 msgctxt "#15015"
 msgid "Remove"
@@ -4129,6 +4197,10 @@ msgctxt "#15109"
 msgid "Skin default"
 msgstr "Qoxra Default"
 
+msgctxt "#15111"
+msgid "Theme"
+msgstr "Tema"
+
 msgctxt "#15112"
 msgid "Default theme"
 msgstr "Default Theme"
@@ -4148,10 +4220,6 @@ msgstr "Mhux imqabbad"
 msgctxt "#15213"
 msgid "Play using..."
 msgstr "Isma bil-..."
-
-msgctxt "#15214"
-msgid "Use smoothed A/V synchronization"
-msgstr "Uża Smoothed A/V Syncronization"
 
 msgctxt "#15215"
 msgid "Hide file names in thumbs view"
@@ -4281,10 +4349,6 @@ msgctxt "#16031"
 msgid "No matching songs in the library."
 msgstr "Tfittxija fid-database bla riżultat."
 
-msgctxt "#16032"
-msgid "Could not initialize database."
-msgstr "Ma stajtx ntella d-database."
-
 msgctxt "#16033"
 msgid "Could not open database."
 msgstr "Ma stajtx niftaħ id-database."
@@ -4361,13 +4425,77 @@ msgctxt "#16316"
 msgid "Auto"
 msgstr "Awto"
 
+msgctxt "#19014"
+msgid "Fixed"
+msgstr "Mgħaġġel"
+
+msgctxt "#19017"
+msgid "Recordings"
+msgstr "Recordings"
+
+msgctxt "#19019"
+msgid "Channels"
+msgstr "Stazzjonijiet"
+
+msgctxt "#19021"
+msgid "Radio"
+msgstr "Radju"
+
+msgctxt "#19023"
+msgid "TV channels"
+msgstr "Stazzjonijiet tat-TV"
+
+msgctxt "#19024"
+msgid "Radio channels"
+msgstr "Stazzjonijiet tar-Radju"
+
+msgctxt "#19029"
+msgid "Channel"
+msgstr "Stazzjon"
+
+msgctxt "#19030"
+msgid "Now"
+msgstr "Issa"
+
 msgctxt "#19031"
 msgid "Next"
 msgstr "Li jmiss"
 
+msgctxt "#19033"
+msgid "Information"
+msgstr "Informazzjoni"
+
+msgctxt "#19046"
+msgid "New channel"
+msgstr "Stazzjon ġdid"
+
+msgctxt "#19148"
+msgid "Channel"
+msgstr "Stazzjon"
+
+msgctxt "#19155"
+msgid "Su"
+msgstr "Baxx"
+
 msgctxt "#19163"
 msgid "Recordings"
 msgstr "Recordings"
+
+msgctxt "#19183"
+msgid "Radio"
+msgstr "Radju"
+
+msgctxt "#19204"
+msgid "New channel"
+msgstr "Stazzjon ġdid"
+
+msgctxt "#19607"
+msgid "Fashion"
+msgstr "Mode:"
+
+msgctxt "#19647"
+msgid "Motoring"
+msgstr "Awto"
 
 msgctxt "#20000"
 msgid "Saved music folder"
@@ -4402,8 +4530,8 @@ msgid "Screenshots"
 msgstr "Screenshots"
 
 msgctxt "#20009"
-msgid "Use XBMC"
-msgstr "Uża XBMC"
+msgid "Use Kodi"
+msgstr "Uża Kodi"
 
 msgctxt "#20011"
 msgid "Music playlists"
@@ -4644,14 +4772,6 @@ msgstr "Uri info tat-Temp"
 msgctxt "#20085"
 msgid "Show system info"
 msgstr "Uri info tas-Sistema"
-
-msgctxt "#20086"
-msgid "Show available disc space C: E: F:"
-msgstr "Uri Spazju disponibbli fuq C: E: F:"
-
-msgctxt "#20087"
-msgid "Show available disc space E: F: G:"
-msgstr "Uri Spazju disponibbli fuq E: F: G:"
 
 msgctxt "#20088"
 msgid "Weather info"
@@ -5145,10 +5265,6 @@ msgctxt "#20326"
 msgid "This will reset the calibration values for %s"
 msgstr "Din tirrisetja l-valuri tal-kalibrazzjoni ta' %s"
 
-msgctxt "#20327"
-msgid "to it's default values."
-msgstr "għad-difolt."
-
 msgctxt "#20328"
 msgid "Browse for destination"
 msgstr "lokazzjoni biex tikkopja ġo"
@@ -5202,7 +5318,7 @@ msgid "Do you want to remove all items within"
 msgstr "Trid tneħħi l-affarijiet kollha li qiegħdin ġo"
 
 msgctxt "#20341"
-msgid "this path from the XBMC library?"
+msgid "this path from the Kodi library?"
 msgstr "dan il-path min ġewwa d-database?"
 
 msgctxt "#20342"
@@ -5361,10 +5477,6 @@ msgctxt "#20381"
 msgid "Specials"
 msgstr "Speċjali"
 
-msgctxt "#20382"
-msgid "Automatically grab season thumbs"
-msgstr "Ġib tambnejl tal-istaġun awtomatikament"
-
 msgctxt "#20383"
 msgid "Selected folder contains a single video"
 msgstr "Fowlder fiħ Vidjo wieħed"
@@ -5473,6 +5585,10 @@ msgctxt "#20434"
 msgid "Sets"
 msgstr "Issettja"
 
+msgctxt "#20452"
+msgid "episode"
+msgstr "Episodju"
+
 msgctxt "#21330"
 msgid "Show hidden files and directories"
 msgstr "Uri kannestri u fajls moħbija"
@@ -5521,17 +5637,9 @@ msgctxt "#21365"
 msgid "Remove media share"
 msgstr "Neħħi Media Share"
 
-msgctxt "#21366"
-msgid "Subtitle folder"
-msgstr "Fowlder Preferut tas-sottutitoli"
-
 msgctxt "#21367"
 msgid "Movie & alternate subtitle directory"
 msgstr "Fowlder Alternattiv ghas-sottotitoli u filmati"
-
-msgctxt "#21369"
-msgid "Enable mouse and Touch Screen support"
-msgstr "Attiva l-Maws"
 
 msgctxt "#21371"
 msgid "Thumbnail"
@@ -5773,6 +5881,10 @@ msgctxt "#21450"
 msgid "Edit"
 msgstr "Biddel"
 
+msgctxt "#21461"
+msgid "Fixed"
+msgstr "Mgħaġġel"
+
 msgctxt "#21800"
 msgid "File name"
 msgstr "Isem tal-Fajl"
@@ -5950,7 +6062,7 @@ msgid "Reference service"
 msgstr "Servizz ta' Riferenza"
 
 msgctxt "#21881"
-msgid "Allow control of XBMC via UPnP"
+msgid "Allow control of Kodi via UPnP"
 msgstr "Attiva UPnP Renderer"
 
 msgctxt "#21882"
@@ -6045,6 +6157,14 @@ msgctxt "#22031"
 msgid "Size"
 msgstr "Kobor"
 
+msgctxt "#22032"
+msgid "Colours"
+msgstr "Kuluri"
+
+msgctxt "#24001"
+msgid "Add-ons"
+msgstr "Estensjonijiet"
+
 msgctxt "#24005"
 msgid "Media sources"
 msgstr "Sorsi tal-Media"
@@ -6056,10 +6176,6 @@ msgstr "Informazzjoni tal-Filmat"
 msgctxt "#24008"
 msgid "Screensaver"
 msgstr "Skrinsejver"
-
-msgctxt "#24010"
-msgid "Visualization"
-msgstr "Viżwalizzazzjoni"
 
 msgctxt "#24012"
 msgid "Subtitles"
@@ -6081,9 +6197,21 @@ msgctxt "#24018"
 msgid "Services"
 msgstr "Servers"
 
+msgctxt "#24023"
+msgid "Disabled"
+msgstr "Mhux attiv"
+
 msgctxt "#24027"
 msgid "Weather"
 msgstr "It-temp"
+
+msgctxt "#24121"
+msgid "Enter search string"
+msgstr "Daħħal Search String"
+
+msgctxt "#34100"
+msgid "Number of channels"
+msgstr "Numru ta' kanali"
 
 msgctxt "#34123"
 msgid "Never"
@@ -6096,3 +6224,59 @@ msgstr "Isem"
 msgctxt "#36016"
 msgid "Connected"
 msgstr "Xbox Imqabbda"
+
+msgctxt "#36428"
+msgid "Record"
+msgstr "Irrekordja"
+
+msgctxt "#36502"
+msgid "Disabled"
+msgstr "Mhux attiv"
+
+msgctxt "#36508"
+msgid "Hardware Based"
+msgstr "Hardware"
+
+msgctxt "#36902"
+msgid "TV show"
+msgstr "Programm Televiziv"
+
+msgctxt "#36903"
+msgid "TV shows"
+msgstr "Xow Televiżiv"
+
+msgctxt "#36906"
+msgid "episode"
+msgstr "Episodju"
+
+msgctxt "#36910"
+msgid "set"
+msgstr "Issettja"
+
+msgctxt "#36911"
+msgid "sets"
+msgstr "Issettja"
+
+msgctxt "#36912"
+msgid "video"
+msgstr "Vidjo"
+
+msgctxt "#36913"
+msgid "videos"
+msgstr "Filmati"
+
+msgctxt "#36918"
+msgid "album"
+msgstr "Album"
+
+msgctxt "#36920"
+msgid "song"
+msgstr "Diska"
+
+msgctxt "#36921"
+msgid "songs"
+msgstr "Diski"
+
+msgctxt "#37026"
+msgid "Auto"
+msgstr "Awto"

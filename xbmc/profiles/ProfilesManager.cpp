@@ -80,11 +80,6 @@ CProfilesManager& CProfilesManager::Get()
   return sProfilesManager;
 }
 
-bool CProfilesManager::OnSettingsLoading()
-{
-  return true;
-}
-
 void CProfilesManager::OnSettingsLoaded()
 {
   // check them all
@@ -101,10 +96,10 @@ void CProfilesManager::OnSettingsLoaded()
   CDirectory::Create(URIUtils::AddFileToFolder(strDir,"mixed"));
 }
 
-bool CProfilesManager::OnSettingsSaved()
+void CProfilesManager::OnSettingsSaved()
 {
   // save mastercode
-  return Save();
+  Save();
 }
 
 void CProfilesManager::OnSettingsCleared()
@@ -221,11 +216,11 @@ bool CProfilesManager::Save(const std::string &file) const
 void CProfilesManager::Clear()
 {
   CSingleLock lock(m_critical);
-  m_profiles.clear();
   m_usingLoginScreen = false;
   m_lastUsedProfile = 0;
   m_nextProfileId = 0;
   SetCurrentProfileId(0);
+  m_profiles.clear();
 }
 
 bool CProfilesManager::LoadProfile(size_t index)
@@ -253,9 +248,6 @@ bool CProfilesManager::LoadProfile(size_t index)
   CSettings::Get().SetLoaded();
 
   CreateProfileFolders();
-
-  // initialize our charset converter
-  g_charsetConverter.reset();
 
   // Load the langinfo to have user charset <-> utf-8 conversion
   string strLanguage = CSettings::Get().GetString("locale.language");
@@ -363,7 +355,7 @@ void CProfilesManager::CreateProfileFolders()
   CDirectory::Create(GetVideoThumbFolder());
   CDirectory::Create(GetBookmarksThumbFolder());
   for (size_t hex = 0; hex < 16; hex++)
-    CDirectory::Create(URIUtils::AddFileToFolder(GetThumbnailsFolder(), StringUtils::Format("%x", hex)));
+    CDirectory::Create(URIUtils::AddFileToFolder(GetThumbnailsFolder(), StringUtils::Format("%lx", hex)));
 
   CDirectory::Create("special://profile/addon_data");
   CDirectory::Create("special://profile/keymaps");
@@ -372,7 +364,7 @@ void CProfilesManager::CreateProfileFolders()
 const CProfile& CProfilesManager::GetMasterProfile() const
 {
   CSingleLock lock(m_critical);
-  if (m_profiles.size() > 0)
+  if (!m_profiles.empty())
     return m_profiles[0];
 
   CLog::Log(LOGERROR, "%s: master profile doesn't exist", __FUNCTION__);

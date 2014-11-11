@@ -33,6 +33,10 @@
 #include "settings/DisplaySettings.h"
 #include "guilib/GraphicContext.h"
 #include "guilib/Texture.h"
+#include "utils/StringUtils.h"
+#include "guilib/DispResource.h"
+#include "threads/SingleLock.h"
+#include "video/videosync/VideoSyncCocoa.h"
 #include <vector>
 #undef BOOL
 
@@ -40,10 +44,11 @@
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
 #if defined(TARGET_DARWIN_IOS_ATV2)
-#import "atv2/XBMCController.h"
+#import "atv2/KodiController.h"
 #else
 #import "ios/XBMCController.h"
 #endif
+#import "osx/IOSScreenManager.h"
 #include "osx/DarwinUtils.h"
 #import <dlfcn.h>
 
@@ -52,6 +57,8 @@ CWinSystemIOS::CWinSystemIOS() : CWinSystemBase()
   m_eWindowSystem = WINDOW_SYSTEM_IOS;
 
   m_iVSyncErrors = 0;
+  m_bIsBackgrounded = false;
+  m_VideoSync = NULL;
 }
 
 CWinSystemIOS::~CWinSystemIOS()
@@ -168,6 +175,16 @@ int CWinSystemIOS::GetNumScreens()
   return [[UIScreen screens] count];
 }
 
+int CWinSystemIOS::GetCurrentScreen()
+{
+  int idx = 0;
+  if ([[IOSScreenManager sharedInstance] isExternalScreen])
+  {
+    idx = 1;
+  }
+  return idx;
+}
+
 bool CWinSystemIOS::GetScreenResolution(int* w, int* h, double* fps, int screenIdx)
 {
   // Figure out the screen size. (default to main screen)
@@ -267,7 +284,7 @@ void CWinSystemIOS::FillInVideoModes()
       //mode str by doing it without appending "Full Screen".
       //this is what linux does - though it feels that there shouldn't be
       //the same resolution twice... - thats why i add a FIXME here.
-      res.strMode.Format("%dx%d @ %.2f", w, h, refreshrate);
+      res.strMode = StringUtils::Format("%dx%d @ %.2f", w, h, refreshrate);
       g_graphicsContext.ResetOverscan(res);
       CDisplaySettings::Get().AddResolutionInfo(res);
     }
@@ -285,7 +302,7 @@ bool CWinSystemIOS::IsExtSupported(const char* extension)
   name += extension;
   name += " ";
 
-  return m_eglext.find(name) != string::npos;
+  return m_eglext.find(name) != std::string::npos;
 }
 
 bool CWinSystemIOS::BeginRender()
@@ -306,8 +323,38 @@ bool CWinSystemIOS::EndRender()
   return rtn;
 }
 
-void CWinSystemIOS::InitDisplayLink(void)
+void CWinSystemIOS::Register(IDispResource *resource)
 {
+  CSingleLock lock(m_resourceSection);
+  m_resources.push_back(resource);
+}
+
+void CWinSystemIOS::Unregister(IDispResource* resource)
+{
+  CSingleLock lock(m_resourceSection);
+  std::vector<IDispResource*>::iterator i = find(m_resources.begin(), m_resources.end(), resource);
+  if (i != m_resources.end())
+    m_resources.erase(i);
+}
+
+void CWinSystemIOS::OnAppFocusChange(bool focus)
+{
+  CSingleLock lock(m_resourceSection);
+  m_bIsBackgrounded = !focus;
+  CLog::Log(LOGDEBUG, "CWinSystemIOS::OnAppFocusChange: %d", focus ? 1 : 0);
+  for (std::vector<IDispResource *>::iterator i = m_resources.begin(); i != m_resources.end(); i++)
+    (*i)->OnAppFocusChange(focus);
+}
+
+void CWinSystemIOS::VblankHandler(int64_t nowtime, double fps)
+{
+  if (m_VideoSync)
+    m_VideoSync->VblankHandler(nowtime, fps);
+}
+
+void CWinSystemIOS::InitDisplayLink(CVideoSyncCocoa *syncImpl)
+{
+  m_VideoSync = syncImpl;
 }
 void CWinSystemIOS::DeinitDisplayLink(void)
 {
@@ -347,7 +394,7 @@ void CWinSystemIOS::ShowOSMouse(bool show)
 
 bool CWinSystemIOS::HasCursor()
 {
-  if( DarwinIsAppleTV2() )
+  if( CDarwinUtils::IsAppleTV2() )
   {
     return true;
   }

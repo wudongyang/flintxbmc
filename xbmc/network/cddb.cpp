@@ -32,6 +32,7 @@
 
 #include <taglib/id3v1genres.h>
 #include "cddb.h"
+#include "CompileInfo.h"
 #include "network/DNSNameCache.h"
 #include "settings/AdvancedSettings.h"
 #include "utils/StringUtils.h"
@@ -194,7 +195,7 @@ string Xcddb::Recv(bool wait4point)
 
   //##########################################################
   // Write captured data information to the xbmc log file
-  CLog::Log(LOGDEBUG,"Xcddb::Recv Captured %d bytes // Buffer= %"PRIdS" bytes. Captured data follows on next line\n%s", counter, str_buffer.size(),(char *)str_buffer.c_str());
+  CLog::Log(LOGDEBUG,"Xcddb::Recv Captured %d bytes // Buffer= %" PRIdS" bytes. Captured data follows on next line\n%s", counter, str_buffer.size(),(char *)str_buffer.c_str());
 
 
   return str_buffer;
@@ -397,9 +398,7 @@ void Xcddb::addTitle(const char *buffer)
   }
 
   // track artist" / "track title
-  CStdString strValue = value;
-  CStdStringArray values;
-  StringUtils::SplitString(value, " / ", values);
+  vector<string> values = StringUtils::Split(value, " / ");
   if (values.size() > 1)
   {
     g_charsetConverter.unknownToUTF8(values[0]);
@@ -407,7 +406,7 @@ void Xcddb::addTitle(const char *buffer)
     g_charsetConverter.unknownToUTF8(values[1]);
     m_mapTitles[trk_nr] += values[1];
   }
-  else
+  else if (!values.empty())
   {
     g_charsetConverter.unknownToUTF8(values[0]);
     m_mapTitles[trk_nr] += values[0];
@@ -499,12 +498,12 @@ void Xcddb::parseData(const char *buffer)
       if (s != NULL)
       {
         CStdString strKeyword(line, s - line);
-        strKeyword.TrimRight(" ");
+        StringUtils::TrimRight(strKeyword);
 
         CStdString strValue(s+1);
-        strValue.Replace("\\n", "\n"); 
-        strValue.Replace("\\t", "\t"); 
-        strValue.Replace("\\\\", "\\"); 
+        StringUtils::Replace(strValue, "\\n", "\n");
+        StringUtils::Replace(strValue, "\\t", "\t");
+        StringUtils::Replace(strValue, "\\\\", "\\");
 
         std::map<CStdString, CStdString>::const_iterator it = keywords.find(strKeyword);
         if (it != keywords.end())
@@ -523,17 +522,18 @@ void Xcddb::parseData(const char *buffer)
     CStdString strKeyword = *it;
     CStdString strValue = keywords[strKeyword];
 
+    /* TODO:STRING_CLEANUP */
     if (strKeyword == "DTITLE")
     {
       // DTITLE may contain artist and disc title, separated with " / ",
       // for example: DTITLE=Modern Talking / Album: Victory (The 11th Album)
       bool found = false;
-      for (int i = 0; i < strValue.GetLength() - 2; i++)
+      for (int i = 0; i < (int)strValue.size() - 2; i++)
       {
         if (strValue[i] == ' ' && strValue[i + 1] == '/' && strValue[i + 2] == ' ')
         {
-          m_strDisk_artist = TrimToUTF8(strValue.Left(i));
-          m_strDisk_title = TrimToUTF8(strValue.Mid(i+3));
+          m_strDisk_artist = TrimToUTF8(strValue.substr(0, i));
+          m_strDisk_title = TrimToUTF8(strValue.substr(i+3));
           found = true;
           break;
         }
@@ -546,30 +546,30 @@ void Xcddb::parseData(const char *buffer)
       m_strYear = TrimToUTF8(strValue);
     else if (strKeyword== "DGENRE")
       m_strGenre = TrimToUTF8(strValue);
-    else if (strKeyword.Left(6) == "TTITLE")
+    else if (StringUtils::StartsWith(strKeyword, "TTITLE"))
       addTitle(strKeyword + "=" + strValue);
     else if (strKeyword == "EXTD")
     {
       CStdString strExtd(strValue);
 
-      if (m_strYear.IsEmpty())
+      if (m_strYear.empty())
       {
         // Extract Year from extended info
         // as a fallback
-        int iPos = strExtd.Find("YEAR:");
-        if (iPos > -1) // You never know if you really get UTF-8 strings from cddb
-          g_charsetConverter.unknownToUTF8(strExtd.Mid(iPos + 6, 4), m_strYear);
+        size_t iPos = strExtd.find("YEAR: ");
+        if (iPos != std::string::npos) // You never know if you really get UTF-8 strings from cddb
+          g_charsetConverter.unknownToUTF8(strExtd.substr(iPos + 6, 4), m_strYear);
       }
 
-      if (m_strGenre.IsEmpty())
+      if (m_strGenre.empty())
       {
         // Extract ID3 Genre
         // as a fallback
-        int iPos = strExtd.Find("ID3G:");
-        if (iPos > -1)
+        size_t iPos = strExtd.find("ID3G: ");
+        if (iPos != std::string::npos)
         {
-          CStdString strGenre = strExtd.Mid(iPos + 5, 4);
-          strGenre.TrimLeft(' ');
+          CStdString strGenre = strExtd.substr(iPos + 5, 4);
+          StringUtils::TrimLeft(strGenre);
           if (StringUtils::IsNaturalNumber(strGenre))
           {
             int iGenre = strtol(strGenre, NULL, 10);
@@ -578,7 +578,7 @@ void Xcddb::parseData(const char *buffer)
         }
       }
     }
-    else if (strKeyword.Left(4) == "EXTT")
+    else if (StringUtils::StartsWith(strKeyword, "EXTT"))
       addExtended(strKeyword + "=" + strValue);
   }
 
@@ -759,7 +759,6 @@ bool Xcddb::queryCache( uint32_t discid )
   {
     // Got a cachehit
     char buffer[4096];
-    OutputDebugString ( "cddb local cache hit.\n" );
     file.Read(buffer, 4096);
     file.Close();
     parseData( buffer );
@@ -778,10 +777,9 @@ bool Xcddb::writeCacheFile( const char* pBuffer, uint32_t discid )
   XFILE::CFile file;
   if (file.OpenForWrite(GetCacheFile(discid), true))
   {
-    OutputDebugString ( "Current cd saved to local cddb.\n" );
-    file.Write( (void*) pBuffer, strlen( pBuffer ) + 1 );
+    const bool ret = ( (size_t) file.Write((void*)pBuffer, strlen(pBuffer) + 1) == strlen(pBuffer) + 1);
     file.Close();
-    return true;
+    return ret;
   }
 
   return false;
@@ -874,10 +872,12 @@ bool Xcddb::queryCDinfo(CCdInfo* pInfo)
 
   //##########################################################
   // Send the Hello message
-  CStdString version = g_infoManager.GetLabel(SYSTEM_BUILD_VERSION);
-  if (version.Find(" ") >= 0) 
-    version = version.Left(version.Find(" "));
-  CStdString strGreeting = "cddb hello xbmc xbmc.org XBMC " + version;
+  std::string version = g_infoManager.GetLabel(SYSTEM_BUILD_VERSION);
+  std::string lcAppName = CCompileInfo::GetAppName();
+  StringUtils::ToLower(lcAppName);
+  if (version.find(" ") != std::string::npos)
+    version = version.substr(0, version.find(" "));
+  std::string strGreeting = "cddb hello " + lcAppName + " kodi.tv " + CCompileInfo::GetAppName() + " " + version;
   if ( ! Send(strGreeting.c_str()) )
   {
     CLog::Log(LOGERROR, "Xcddb::queryCDinfo Error sending \"%s\"", strGreeting.c_str());
@@ -967,7 +967,7 @@ bool Xcddb::queryCDinfo(CCdInfo* pInfo)
   {
   case 200: //Found exact match
     strtok((char *)recv_buffer.c_str(), " ");
-    read_buffer.Format("cddb read %s %08x", strtok(NULL, " "), discid);
+    read_buffer = StringUtils::Format("cddb read %s %08x", strtok(NULL, " "), discid);
     break;
 
   case 210: //Found exact matches, list follows (until terminating marker)
@@ -1071,14 +1071,14 @@ bool Xcddb::isCDCached( CCdInfo* pInfo )
 CStdString Xcddb::GetCacheFile(uint32_t disc_id) const
 {
   CStdString strFileName;
-  strFileName.Format("%x.cddb", disc_id);
+  strFileName = StringUtils::Format("%x.cddb", disc_id);
   return URIUtils::AddFileToFolder(cCacheDir, strFileName);
 }
 
 CStdString Xcddb::TrimToUTF8(const CStdString &untrimmedText)
 {
   CStdString text(untrimmedText);
-  text.Trim();
+  StringUtils::Trim(text);
   // You never know if you really get UTF-8 strings from cddb
   g_charsetConverter.unknownToUTF8(text);
   return text;

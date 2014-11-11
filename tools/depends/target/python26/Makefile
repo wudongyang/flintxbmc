@@ -13,7 +13,7 @@ ARCHIVE=$(SOURCE).tar.bz2
 CONFIGURE=OPT="$(CFLAGS)" \
   LIBS=-lm \
   ./configure --prefix=$(PREFIX) \
-  --disable-toolbox-glue --disable-framework --with-system-ffi \
+  --disable-toolbox-glue --disable-framework --with-system-ffi --without-pymalloc \
 
 LIBDYLIB=$(PLATFORM)/libpython2.6.a
 
@@ -38,7 +38,12 @@ endif
 	cp modules.setup $(PLATFORM)/Modules/Setup.dist
 
 #Add -liconv as needed, and add the _scproxy module for darwin
+#  disable locale altogether for Android
+ifeq ($(OS),android)
+	cd $(PLATFORM); sed -ie 's|_locale _localemodule.c   -lintl|#_locale _localemodule.c   -lintl|' Modules/Setup.dist
+else
 	cd $(PLATFORM); sed -ie 's|_locale _localemodule.c   -lintl|_locale _localemodule.c   -lintl $(LINK_ICONV) |' Modules/Setup.dist
+endif
 ifeq ($(OS),osx)
 	echo "_scproxy \$$(srcdir)/Mac/Modules/_scproxy.c -framework SystemConfiguration -framework CoreFoundation" >> $(PLATFORM)/Modules/Setup.dist
 endif

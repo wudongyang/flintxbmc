@@ -31,7 +31,6 @@
 #include "MusicInfoTag.h"
 #include "SpecialProtocol.h"
 #include "PlayList.h"
-#include "AEFactory.h"
 #include "ApplicationMessenger.h"
 #include "Application.h"
 #include "interfaces/AnnouncementManager.h"
@@ -49,6 +48,7 @@
 #include "TextureCache.h"
 #undef id
 #include <math.h>
+#include "osx/DarwinUtils.h"
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795028842
@@ -181,7 +181,7 @@ void AnnounceBridge(ANNOUNCEMENT::AnnouncementFlag flag, const char *sender, con
     LOG(@"item: %@", item.description);
     [g_xbmcController performSelectorOnMainThread:@selector(onPlay:) withObject:item  waitUntilDone:NO];
   }
-  else if (msg == "OnSpeedChanged")
+  else if (msg == "OnSpeedChanged" || msg == "OnPause")
   {
     NSDictionary *item = [dict valueForKey:@"item"];
     NSDictionary *player = [dict valueForKey:@"player"];
@@ -189,15 +189,11 @@ void AnnounceBridge(ANNOUNCEMENT::AnnouncementFlag flag, const char *sender, con
     [item setValue:[NSNumber numberWithDouble:g_application.GetTime()] forKey:@"elapsed"];
     LOG(@"item: %@", item.description);
     [g_xbmcController performSelectorOnMainThread:@selector(OnSpeedChanged:) withObject:item  waitUntilDone:NO];
-  }
-  else if (msg == "OnPause")
-  {
-    CAEFactory::Suspend();
-    [g_xbmcController performSelectorOnMainThread:@selector(onPause:) withObject:[dict valueForKey:@"item"]  waitUntilDone:NO];
+    if (msg == "OnPause")
+      [g_xbmcController performSelectorOnMainThread:@selector(onPause:) withObject:[dict valueForKey:@"item"]  waitUntilDone:NO];
   }
   else if (msg == "OnStop")
   {
-    CAEFactory::Suspend();
     [g_xbmcController performSelectorOnMainThread:@selector(onStop:) withObject:[dict valueForKey:@"item"]  waitUntilDone:NO];
   }
 }
@@ -216,12 +212,12 @@ public:
   {
     if (NULL==g_announceReceiver) {
       g_announceReceiver = new AnnounceReceiver();
-      ANNOUNCEMENT::CAnnouncementManager::AddAnnouncer(g_announceReceiver);
+      ANNOUNCEMENT::CAnnouncementManager::Get().AddAnnouncer(g_announceReceiver);
     }
   }
   static void dealloc()
   {
-    ANNOUNCEMENT::CAnnouncementManager::RemoveAnnouncer(g_announceReceiver);
+    ANNOUNCEMENT::CAnnouncementManager::Get().RemoveAnnouncer(g_announceReceiver);
     delete g_announceReceiver;
   }
 private:
@@ -252,6 +248,58 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
 @synthesize m_networkAutoSuspendTimer;
 @synthesize nowPlayingInfo;
 //--------------------------------------------------------------
+- (void) sendKeypressEvent: (XBMC_Event) event
+{
+  event.type = XBMC_KEYDOWN;
+  CWinEvents::MessagePush(&event);
+
+  event.type = XBMC_KEYUP;
+  CWinEvents::MessagePush(&event);
+}
+
+// START OF UIKeyInput protocol
+- (BOOL)hasText
+{
+  return NO;
+}
+
+- (void)insertText:(NSString *)text
+{
+  XBMC_Event newEvent;
+  memset(&newEvent, 0, sizeof(newEvent));
+  unichar currentKey = [text characterAtIndex:0];
+
+  // handle upper case letters
+  if (currentKey >= 'A' && currentKey <= 'Z')
+  {
+    newEvent.key.keysym.mod = XBMCKMOD_LSHIFT;
+    currentKey += 0x20;// convert to lower case
+  }
+
+  // handle return
+  if (currentKey == '\n' || currentKey == '\r')
+    currentKey = XBMCK_RETURN;
+
+  newEvent.key.keysym.sym = (XBMCKey)currentKey;
+  newEvent.key.keysym.unicode = currentKey;
+
+  [self sendKeypressEvent:newEvent];
+}
+
+- (void)deleteBackward
+{
+  [self sendKey:XBMCK_BACKSPACE];
+}
+// END OF UIKeyInput protocol
+
+// - iOS6 rotation API - will be called on iOS7 runtime!--------
+- (NSUInteger)supportedInterfaceOrientations
+{
+  //mask defines available as of ios6 sdk
+  //return UIInterfaceOrientationMaskLandscape;
+  return (1 << UIInterfaceOrientationLandscapeLeft) | (1 << UIInterfaceOrientationLandscapeRight);
+}
+// - old rotation API will be called on iOS6 and lower - removed in iOS7
 -(BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {  
   //on external screens somehow the logic is rotated by 90°
@@ -279,25 +327,29 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
 //--------------------------------------------------------------
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
-  orientation = toInterfaceOrientation;
-  CGRect srect = [IOSScreenManager getLandscapeResolution: [m_glView getCurrentScreen]];
-  CGRect rect = srect;;
-  
-
-  switch(toInterfaceOrientation)
+#if __IPHONE_8_0
+  if (CDarwinUtils::GetIOSVersion() < 8.0)
+#endif
   {
-    case UIInterfaceOrientationPortrait:  
-    case UIInterfaceOrientationPortraitUpsideDown:
-      if(![[IOSScreenManager sharedInstance] isExternalScreen]) 
-      {
-        rect.size = CGSizeMake( srect.size.height, srect.size.width );    
-      }
-      break;
-    case UIInterfaceOrientationLandscapeLeft:
-    case UIInterfaceOrientationLandscapeRight:
-      break;//just leave the rect as is
-  }  
-	m_glView.frame = rect;
+    orientation = toInterfaceOrientation;
+    CGRect srect = [IOSScreenManager getLandscapeResolution: [m_glView getCurrentScreen]];
+    CGRect rect = srect;;
+  
+    switch(toInterfaceOrientation)
+    {
+      case UIInterfaceOrientationPortrait:
+      case UIInterfaceOrientationPortraitUpsideDown:
+        if(![[IOSScreenManager sharedInstance] isExternalScreen])
+        {
+          rect.size = CGSizeMake( srect.size.height, srect.size.width );
+        }
+        break;
+      case UIInterfaceOrientationLandscapeLeft:
+      case UIInterfaceOrientationLandscapeRight:
+        break;//just leave the rect as is
+    }
+    m_glView.frame = rect;
+  }
 }
 
 - (UIInterfaceOrientation) getOrientation
@@ -312,12 +364,8 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   
   //newEvent.key.keysym.unicode = key;
   newEvent.key.keysym.sym = key;
+  [self sendKeypressEvent:newEvent];
   
-  newEvent.type = XBMC_KEYDOWN;
-  CWinEventsIOS::MessagePush(&newEvent);
-  
-  newEvent.type = XBMC_KEYUP;
-  CWinEventsIOS::MessagePush(&newEvent);
 }
 //--------------------------------------------------------------
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
@@ -340,7 +388,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UITapGestureRecognizer *singleFingerSingleTap = [[UITapGestureRecognizer alloc]
                                                    initWithTarget:self action:@selector(handleSingleFingerSingleTap:)];
 
-  singleFingerSingleTap.delaysTouchesBegan = YES;
+  singleFingerSingleTap.delaysTouchesBegan = NO;
   singleFingerSingleTap.numberOfTapsRequired = 1;
   singleFingerSingleTap.numberOfTouchesRequired = 1;
 
@@ -353,7 +401,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UITapGestureRecognizer *doubleFingerSingleTap = [[UITapGestureRecognizer alloc]
     initWithTarget:self action:@selector(handleDoubleFingerSingleTap:)];  
 
-  doubleFingerSingleTap.delaysTouchesBegan = YES;
+  doubleFingerSingleTap.delaysTouchesBegan = NO;
   doubleFingerSingleTap.numberOfTapsRequired = 1;
   doubleFingerSingleTap.numberOfTouchesRequired = 2;
   [m_glView addGestureRecognizer:doubleFingerSingleTap];
@@ -363,8 +411,8 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UILongPressGestureRecognizer *singleFingerSingleLongTap = [[UILongPressGestureRecognizer alloc]
     initWithTarget:self action:@selector(handleSingleFingerSingleLongTap:)];  
 
-  singleFingerSingleLongTap.delaysTouchesBegan = YES;
-  singleFingerSingleLongTap.delaysTouchesEnded = YES;
+  singleFingerSingleLongTap.delaysTouchesBegan = NO;
+  singleFingerSingleLongTap.delaysTouchesEnded = NO;
   [m_glView addGestureRecognizer:singleFingerSingleLongTap];
   [singleFingerSingleLongTap release];
 
@@ -372,7 +420,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UISwipeGestureRecognizer *swipeLeft2 = [[UISwipeGestureRecognizer alloc]
                                             initWithTarget:self action:@selector(handleSwipe:)];
 
-  swipeLeft2.delaysTouchesBegan = YES;
+  swipeLeft2.delaysTouchesBegan = NO;
   swipeLeft2.numberOfTouchesRequired = 2;
   swipeLeft2.direction = UISwipeGestureRecognizerDirectionLeft;
   swipeLeft2.delegate = self;
@@ -383,7 +431,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UISwipeGestureRecognizer *swipeLeft = [[UISwipeGestureRecognizer alloc]
                                           initWithTarget:self action:@selector(handleSwipe:)];
 
-  swipeLeft.delaysTouchesBegan = YES;
+  swipeLeft.delaysTouchesBegan = NO;
   swipeLeft.numberOfTouchesRequired = 1;
   swipeLeft.direction = UISwipeGestureRecognizerDirectionLeft;
   swipeLeft.delegate = self;
@@ -394,7 +442,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UISwipeGestureRecognizer *swipeRight = [[UISwipeGestureRecognizer alloc]
                                          initWithTarget:self action:@selector(handleSwipe:)];
   
-  swipeRight.delaysTouchesBegan = YES;
+  swipeRight.delaysTouchesBegan = NO;
   swipeRight.numberOfTouchesRequired = 1;
   swipeRight.direction = UISwipeGestureRecognizerDirectionRight;
   swipeRight.delegate = self;
@@ -405,7 +453,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UISwipeGestureRecognizer *swipeUp = [[UISwipeGestureRecognizer alloc]
                                          initWithTarget:self action:@selector(handleSwipe:)];
   
-  swipeUp.delaysTouchesBegan = YES;
+  swipeUp.delaysTouchesBegan = NO;
   swipeUp.numberOfTouchesRequired = 1;
   swipeUp.direction = UISwipeGestureRecognizerDirectionUp;
   swipeUp.delegate = self;
@@ -416,7 +464,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UISwipeGestureRecognizer *swipeDown = [[UISwipeGestureRecognizer alloc]
                                          initWithTarget:self action:@selector(handleSwipe:)];
   
-  swipeDown.delaysTouchesBegan = YES;
+  swipeDown.delaysTouchesBegan = NO;
   swipeDown.numberOfTouchesRequired = 1;
   swipeDown.direction = UISwipeGestureRecognizerDirectionDown;
   swipeDown.delegate = self;
@@ -427,7 +475,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]
     initWithTarget:self action:@selector(handlePan:)];
 
-  pan.delaysTouchesBegan = YES;
+  pan.delaysTouchesBegan = NO;
   pan.maximumNumberOfTouches = 1;
   [m_glView addGestureRecognizer:pan];
   [pan release];
@@ -436,7 +484,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc]
     initWithTarget:self action:@selector(handlePinch:)];
 
-  pinch.delaysTouchesBegan = YES;
+  pinch.delaysTouchesBegan = NO;
   pinch.delegate = self;
   [m_glView addGestureRecognizer:pinch];
   [pinch release];
@@ -445,7 +493,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   UIRotationGestureRecognizer *rotate = [[UIRotationGestureRecognizer alloc]
                                          initWithTarget:self action:@selector(handleRotate:)];
 
-  rotate.delaysTouchesBegan = YES;
+  rotate.delaysTouchesBegan = NO;
   rotate.delegate = self;
   [m_glView addGestureRecognizer:rotate];
   [rotate release];
@@ -464,7 +512,19 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   [self becomeFirstResponder];
 }
 //--------------------------------------------------------------
--(void)handlePinch:(UIPinchGestureRecognizer*)sender 
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+  if( [m_glView isXBMCAlive] )//NO GESTURES BEFORE WE ARE UP AND RUNNING
+  {
+    UITouch *touch = (UITouch *)[[touches allObjects] objectAtIndex:0];
+    CGPoint point = [touch locationInView:m_glView];
+    point.x *= screenScale;
+    point.y *= screenScale;
+    CGenericTouchActionHandler::Get().OnSingleTouchStart(point.x, point.y);
+  }
+}
+//--------------------------------------------------------------
+-(void)handlePinch:(UIPinchGestureRecognizer*)sender
 {
   if( [m_glView isXBMCAlive] )//NO GESTURES BEFORE WE ARE UP AND RUNNING
   {
@@ -612,26 +672,11 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   }
 }
 //--------------------------------------------------------------
-- (void)postMouseMotionEvent:(CGPoint)point
-{
-  XBMC_Event newEvent;
-
-  memset(&newEvent, 0, sizeof(newEvent));
-
-  newEvent.type = XBMC_MOUSEMOTION;
-  newEvent.motion.type = XBMC_MOUSEMOTION;
-  newEvent.motion.which = 0;
-  newEvent.motion.state = 0;
-  newEvent.motion.x = point.x;
-  newEvent.motion.y = point.y;
-  newEvent.motion.xrel = 0;
-  newEvent.motion.yrel = 0;
-  CWinEventsIOS::MessagePush(&newEvent);
-}
-//--------------------------------------------------------------
 - (IBAction)handleSingleFingerSingleTap:(UIGestureRecognizer *)sender 
 {
-  if( [m_glView isXBMCAlive] )//NO GESTURES BEFORE WE ARE UP AND RUNNING
+  //Allow the tap gesture during init
+  //(for allowing the user to tap away any messagboxes during init)
+  if( [m_glView isReadyToRun] )
   {
     CGPoint point = [sender locationOfTouch:0 inView:m_glView];
     point.x *= screenScale;
@@ -665,7 +710,7 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
     {
       lastGesturePoint = point;
       // mark the control
-      CGenericTouchActionHandler::Get().OnSingleTouchStart((float)point.x, (float)point.y);
+      //CGenericTouchActionHandler::Get().OnSingleTouchStart((float)point.x, (float)point.y);
     }
 
     if (sender.state == UIGestureRecognizerStateEnded)
@@ -689,7 +734,6 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
     return ( nil );
 
   m_isPlayingBeforeInactive = NO;
-  m_isInterrupted = NO;
   m_bgTask = UIBackgroundTaskInvalid;
   m_playbackState = IOS_PLAYBACK_STOPPED;
 
@@ -707,22 +751,31 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
                  name: nil
                object: nil];
 
-  /* We start in landscape mode */
-  CGRect srect = frame;
-  srect.size = CGSizeMake( frame.size.height, frame.size.width );
   orientation = UIInterfaceOrientationLandscapeLeft;
-  
-  m_glView = [[IOSEAGLView alloc] initWithFrame: srect withScreen:screen];
-  [[IOSScreenManager sharedInstance] setView:m_glView];  
-  [m_glView setMultipleTouchEnabled:YES];
-  
-  /* Check if screen is Retina */
-  screenScale = [m_glView getScreenScale:screen];
 
-  [self.view addSubview: m_glView];
+#if __IPHONE_8_0
+  if (CDarwinUtils::GetIOSVersion() < 8.0)
+#endif
+  {
+    /* We start in landscape mode */
+    CGRect srect = frame;
+    // in ios sdks older then 8.0 the landscape mode is 90 degrees
+    // rotated
+    srect.size = CGSizeMake( frame.size.height, frame.size.width );
   
-  [self createGestureRecognizers];
-  [m_window addSubview: self.view];
+    m_glView = [[IOSEAGLView alloc] initWithFrame: srect withScreen:screen];
+    [[IOSScreenManager sharedInstance] setView:m_glView];
+    [m_glView setMultipleTouchEnabled:YES];
+  
+    /* Check if screen is Retina */
+    screenScale = [m_glView getScreenScale:screen];
+
+    [self.view addSubview: m_glView];
+  
+    [self createGestureRecognizers];
+    [m_window addSubview: self.view];
+  }
+
   [m_window makeKeyAndVisible];
   g_xbmcController = self;  
   
@@ -730,6 +783,29 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
 
   return self;
 }
+//--------------------------------------------------------------
+#if __IPHONE_8_0
+- (void)loadView
+{
+  [super loadView];
+  if (CDarwinUtils::GetIOSVersion() >= 8.0)
+  {
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    self.view.autoresizesSubviews = YES;
+  
+    m_glView = [[IOSEAGLView alloc] initWithFrame:self.view.bounds withScreen:[UIScreen mainScreen]];
+    [[IOSScreenManager sharedInstance] setView:m_glView];
+    [m_glView setMultipleTouchEnabled:YES];
+  
+    /* Check if screen is Retina */
+    screenScale = [m_glView getScreenScale:[UIScreen mainScreen]];
+  
+    [self.view addSubview: m_glView];
+  
+    [self createGestureRecognizers];
+  }
+}
+#endif
 //--------------------------------------------------------------
 -(void)viewDidLoad
 {
@@ -785,6 +861,16 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
 	
   [super viewWillDisappear:animated];
+}
+//--------------------------------------------------------------
+-(UIView *)inputView
+{
+  // override our input view to an empty view
+  // this prevents the on screen keyboard
+  // which would be shown whenever this UIResponder
+  // becomes the first responder (which is always the case!)
+  // caused by implementing the UIKeyInput protocol
+  return [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
 }
 //--------------------------------------------------------------
 - (BOOL) canBecomeFirstResponder
@@ -906,18 +992,38 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   return ret;
 }
 //--------------------------------------------------------------
-- (void) activateScreen: (UIScreen *)screen
+- (void) activateScreen: (UIScreen *)screen  withOrientation:(UIInterfaceOrientation)newOrientation
 {
-  //this is the only way for making ios call the
-  //shouldAutorotateToInterfaceOrientation of the controller
-  //this is needed because at least with my vga adapter
-  //the orientation on the external screen is messed up by 90°
-  //so we need to hard force the orientation to Portrait for
-  //getting the correct display on external screen
+  // Since ios7 we have to handle the orientation manually
+  // it differs by 90 degree between internal and external screen
+  float   angle = 0;
   UIView *view = [m_window.subviews objectAtIndex:0];
-  [view removeFromSuperview];
-  [m_window addSubview:view];  
+  switch(newOrientation)
+  {
+    case UIInterfaceOrientationPortrait:
+      angle = 0;
+      break;
+    case UIInterfaceOrientationPortraitUpsideDown:
+      angle = M_PI;
+      break;
+    case UIInterfaceOrientationLandscapeLeft:
+      angle = -M_PI_2;
+      break;
+    case UIInterfaceOrientationLandscapeRight:
+      angle = M_PI_2;
+      break;
+  }
+  // reset the rotation of the view
+  view.layer.transform = CATransform3DMakeRotation(angle, 0, 0.0, 1.0);
+#if __IPHONE_8_0
+  view.layer.bounds = view.bounds;
+#else
+  [view setFrame:m_window.frame];
+#endif
   m_window.screen = screen;
+#if __IPHONE_8_0
+  [view setFrame:m_window.frame];
+#endif
 }
 //--------------------------------------------------------------
 - (void) remoteControlReceivedWithEvent: (UIEvent *) receivedEvent {
@@ -975,23 +1081,23 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
     m_isPlayingBeforeInactive = YES;
     CApplicationMessenger::Get().MediaPauseIfPlaying();
   }
+  g_Windowing.OnAppFocusChange(false);
 }
 
 - (void)enterForeground
 {
   PRINT_SIGNATURE();
+  g_Windowing.OnAppFocusChange(true);
   // when we come back, restore playing if we were.
   if (m_isPlayingBeforeInactive)
   {
     CApplicationMessenger::Get().MediaUnPause();
     m_isPlayingBeforeInactive = NO;
   }
-  m_isInterrupted = NO;
 }
 
 - (void)becomeInactive
 {
-  LOG(@"%s: was interrupted: %d", __PRETTY_FUNCTION__,  m_isInterrupted);
   // if we were interrupted, already paused here
   // else if user background us or lock screen, only pause video here, audio keep playing.
   if (g_application.m_pPlayer->IsPlayingVideo() && !g_application.m_pPlayer->IsPaused())
@@ -1001,20 +1107,6 @@ AnnounceReceiver *AnnounceReceiver::g_announceReceiver = NULL;
   }
   // check whether we need disable network auto suspend.
   [self rescheduleNetworkAutoSuspend];
-}
-
-- (void)beginInterruption
-{
-  PRINT_SIGNATURE();
-  m_isInterrupted = YES;
-  CAEFactory::Suspend();
-}
-
-- (void)endInterruption
-{
-  PRINT_SIGNATURE();
-  if (CAEFactory::IsSuspended())
-    CAEFactory::Resume();
 }
 //--------------------------------------------------------------
 - (void)pauseAnimation

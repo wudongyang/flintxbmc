@@ -131,7 +131,7 @@ namespace PVR
      * @param strPath The path.
      * @return The channel or NULL if it wasn't found.
      */
-    CFileItemPtr GetByPath(const CStdString &strPath) const;
+    CFileItemPtr GetByPath(const std::string &strPath) const;
 
     /*!
      * @brief Get the directory for a path.
@@ -139,7 +139,7 @@ namespace PVR
      * @param results The file list to store the results in.
      * @return True if the directory was found, false if not.
      */
-    bool GetDirectory(const CStdString& strPath, CFileItemList &results);
+    bool GetDirectory(const std::string& strPath, CFileItemList &results);
 
     /*!
      * @brief The total amount of unique channels in all containers.
@@ -180,6 +180,13 @@ namespace PVR
      */
     CFileItemPtr GetLastPlayedChannel(void) const;
 
+    /*!
+     * @brief The group that was played last and optionally contains the given channel.
+     * @param iChannelID The channel ID
+     * @return The last watched group.
+     */
+    CPVRChannelGroupPtr GetLastPlayedGroup(int iChannelID = -1) const;
+
     bool CreateChannel(const CPVRChannel &channel);
 
     /*!
@@ -187,6 +194,18 @@ namespace PVR
      * @return True if EPG tags were created succesfully.
      */
     bool CreateChannelEpgs(void);
+
+    /*!
+     * @brief Return the group which was previous played.
+     * @return The group which was previous played.
+     */
+    CPVRChannelGroupPtr GetPreviousPlayedGroup(void);
+
+    /*!
+     * @brief Set the last played group.
+     * @param The last played group
+     */
+    void SetLastPlayedGroup(CPVRChannelGroupPtr group);
 
   protected:
     /*!
@@ -201,5 +220,6 @@ namespace PVR
     CCriticalSection   m_critSection;
     bool               m_bUpdateChannelsOnly;
     bool               m_bIsUpdating;
+    CPVRChannelGroupPtr m_lastPlayedGroups[2]; /*!< used to store the last played groups */
   };
 }

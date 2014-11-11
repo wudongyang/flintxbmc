@@ -28,6 +28,7 @@
 #include "Key.h"
 #include "TextureCache.h"
 #include "WindowIDs.h"
+#include "utils/StringUtils.h"
 
 using namespace std;
 using namespace XFILE;
@@ -103,7 +104,7 @@ void CGUIMultiImage::UpdateInfo(const CGUIListItem *item)
       texturePath = m_texturePath.GetItemLabel(item, true);
     else
       texturePath = m_texturePath.GetLabel(m_parentID);
-    if (texturePath != m_currentPath && !texturePath.IsEmpty())
+    if (texturePath != m_currentPath && !texturePath.empty())
     {
       // a new path - set our current path and tell ourselves to load our directory
       m_currentPath = texturePath;
@@ -220,7 +221,7 @@ void CGUIMultiImage::LoadDirectory()
   m_files.clear();
 
   // don't load any images if our path is empty
-  if (m_currentPath.IsEmpty()) return;
+  if (m_currentPath.empty()) return;
 
   /* Check the fast cases:
    1. Picture extension
@@ -283,7 +284,7 @@ void CGUIMultiImage::SetInfo(const CGUIInfoLabel &info)
     m_currentPath = m_texturePath.GetLabel(WINDOW_INVALID);
 }
 
-CStdString CGUIMultiImage::GetDescription() const
+std::string CGUIMultiImage::GetDescription() const
 {
   return m_image.GetDescription();
 }
@@ -298,7 +299,7 @@ bool CGUIMultiImage::CMultiImageJob::DoWork()
   // check to see if we have a single image or a folder of images
   CFileItem item(m_path, false);
   item.FillInMimeType();
-  if (item.IsPicture() || item.GetMimeType().Left(6).Equals("image/"))
+  if (item.IsPicture() || StringUtils::StartsWithNoCase(item.GetMimeType(), "image/"))
   {
     m_files.push_back(m_path);
   }
@@ -307,7 +308,7 @@ bool CGUIMultiImage::CMultiImageJob::DoWork()
     // Load in images from the directory specified
     // m_path is relative (as are all skin paths)
     CStdString realPath = g_TextureManager.GetTexturePath(m_path, true);
-    if (realPath.IsEmpty())
+    if (realPath.empty())
       return true;
 
     URIUtils::AddSlashAtEnd(realPath);
@@ -316,7 +317,7 @@ bool CGUIMultiImage::CMultiImageJob::DoWork()
     for (int i=0; i < items.Size(); i++)
     {
       CFileItem* pItem = items[i].get();
-      if (pItem && (pItem->IsPicture() || pItem->GetMimeType().Left(6).Equals("image/")))
+      if (pItem && (pItem->IsPicture() || StringUtils::StartsWithNoCase(pItem->GetMimeType(), "image/")))
         m_files.push_back(pItem->GetPath());
     }
   }

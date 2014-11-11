@@ -24,6 +24,7 @@
 #include "addons/Skin.h"
 #include "utils/CPUInfo.h"
 #include "utils/log.h"
+#include "CompileInfo.h"
 #include "input/ButtonTranslator.h"
 #include "guilib/GUIControlFactory.h"
 #include "guilib/GUIFontManager.h"
@@ -32,6 +33,7 @@
 #include "guilib/GUIControlProfiler.h"
 #include "GUIInfoManager.h"
 #include "utils/Variant.h"
+#include "utils/StringUtils.h"
 
 #include <climits>
 
@@ -102,20 +104,22 @@ void CGUIWindowDebugInfo::Process(unsigned int currentTime, CDirtyRegionList &di
     GlobalMemoryStatusEx(&stat);
     CStdString profiling = CGUIControlProfiler::IsRunning() ? " (profiling)" : "";
     CStdString strCores = g_cpuInfo.GetCoresUsageString();
+    std::string lcAppName = CCompileInfo::GetAppName();
+    StringUtils::ToLower(lcAppName);
 #if !defined(TARGET_POSIX)
-    info.Format("LOG: %sxbmc.log\nMEM: %"PRIu64"/%"PRIu64" KB - FPS: %2.1f fps\nCPU: %s%s", g_advancedSettings.m_logFolder.c_str(),
-                stat.ullAvailPhys/1024, stat.ullTotalPhys/1024, g_infoManager.GetFPS(), strCores.c_str(), profiling.c_str());
+    info = StringUtils::Format("LOG: %s%s.log\nMEM: %" PRIu64"/%" PRIu64" KB - FPS: %2.1f fps\nCPU: %s%s", g_advancedSettings.m_logFolder.c_str(), lcAppName.c_str(),
+                               stat.ullAvailPhys/1024, stat.ullTotalPhys/1024, g_infoManager.GetFPS(), strCores.c_str(), profiling.c_str());
 #else
     double dCPU = m_resourceCounter.GetCPUUsage();
-    info.Format("LOG: %sxbmc.log\nMEM: %"PRIu64"/%"PRIu64" KB - FPS: %2.1f fps\nCPU: %s (CPU-XBMC %4.2f%%%s)", g_advancedSettings.m_logFolder.c_str(),
-                stat.ullAvailPhys/1024, stat.ullTotalPhys/1024, g_infoManager.GetFPS(), strCores.c_str(), dCPU, profiling.c_str());
+    info = StringUtils::Format("LOG: %s%s.log\nMEM: %" PRIu64"/%" PRIu64" KB - FPS: %2.1f fps\nCPU: %s (CPU-XBMC %4.2f%%%s)", g_advancedSettings.m_logFolder.c_str(), lcAppName.c_str(),
+                               stat.ullAvailPhys/1024, stat.ullTotalPhys/1024, g_infoManager.GetFPS(), strCores.c_str(), dCPU, profiling.c_str());
 #endif
   }
 
   // render the skin debug info
   if (g_SkinInfo->IsDebugging())
   {
-    if (!info.IsEmpty())
+    if (!info.empty())
       info += "\n";
     CGUIWindow *window = g_windowManager.GetWindow(g_windowManager.GetFocusedWindow());
     CGUIWindow *pointer = g_windowManager.GetWindow(WINDOW_DIALOG_POINTER);
@@ -125,7 +129,7 @@ void CGUIWindowDebugInfo::Process(unsigned int currentTime, CDirtyRegionList &di
     if (window)
     {
       CStdString windowName = CButtonTranslator::TranslateWindow(window->GetID());
-      if (!windowName.IsEmpty())
+      if (!windowName.empty())
         windowName += " (" + CStdString(window->GetProperty("xmlfile").asString()) + ")";
       else
         windowName = window->GetProperty("xmlfile").asString();
@@ -136,12 +140,12 @@ void CGUIWindowDebugInfo::Process(unsigned int currentTime, CDirtyRegionList &di
       point.y *= g_graphicsContext.GetGUIScaleY();
       g_graphicsContext.SetRenderingResolution(g_graphicsContext.GetResInfo(), false);
     }
-    info.AppendFormat("Mouse: (%d,%d)  ", (int)point.x, (int)point.y);
+    info += StringUtils::Format("Mouse: (%d,%d)  ", (int)point.x, (int)point.y);
     if (window)
     {
       CGUIControl *control = window->GetFocusedControl();
       if (control)
-        info.AppendFormat("Focused: %i (%s)", control->GetID(), CGUIControlFactory::TranslateControlType(control->GetControlType()).c_str());
+        info += StringUtils::Format("Focused: %i (%s)", control->GetID(), CGUIControlFactory::TranslateControlType(control->GetControlType()).c_str());
     }
   }
 

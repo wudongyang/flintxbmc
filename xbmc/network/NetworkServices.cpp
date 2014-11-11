@@ -74,7 +74,7 @@
 #endif
 
 #include "settings/AdvancedSettings.h"
-#include "settings/Setting.h"
+#include "settings/lib/Setting.h"
 #include "settings/Settings.h"
 #include "utils/log.h"
 #include "utils/RssManager.h"
@@ -210,12 +210,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
       }
 #endif //HAS_ZEROCONF
 
-      if (!StartAirPlayServer())
-      {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(1273), "", g_localizeStrings.Get(33100), "");
-        return false;
-      }
-
+      // note - airtunesserver has to start before airplay server (ios7 client detection bug)
 #ifdef HAS_AIRTUNES
       if (!StartAirTunesServer())
       {
@@ -223,6 +218,12 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
         return false;
       }
 #endif //HAS_AIRTUNES
+      
+      if (!StartAirPlayServer())
+      {
+        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(1273), "", g_localizeStrings.Get(33100), "");
+        return false;
+      }      
     }
     else
     {
@@ -256,7 +257,14 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
   if (settingId == "services.upnpserver")
   {
     if (((CSettingBool*)setting)->GetValue())
-      return StartUPnPServer();
+    {
+      if (!StartUPnPServer())
+        return false;
+
+      // always stop and restart the client if necessary
+      StopUPnPClient();
+      StartUPnPClient();
+    }
     else
       return StopUPnPServer();
   }
@@ -392,18 +400,40 @@ void CNetworkServices::OnSettingChanged(const CSetting *setting)
   }
 }
 
+bool CNetworkServices::OnSettingUpdate(CSetting* &setting, const char *oldSettingId, const TiXmlNode *oldSettingNode)
+{
+  if (setting == NULL)
+    return false;
+
+  const std::string &settingId = setting->GetId();
+  if (settingId == "services.webserverusername")
+  {
+    CSettingString *webserverusername = (CSettingString*)setting;
+    // if webserverusername is xbmc and pw is not empty we treat it as altered
+    // and don't change the username to kodi - part of rebrand
+    if (CSettings::Get().GetString("services.webserverusername") == "xbmc" &&
+        !CSettings::Get().GetString("services.webserverpassword").empty())
+      return true;
+  }
+  return false;
+}
+
 void CNetworkServices::Start()
 {
   StartZeroconf();
+#ifdef HAS_WEB_SERVER
   if (CSettings::Get().GetBool("services.webserver") && !StartWebserver())
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Warning, g_localizeStrings.Get(33101), g_localizeStrings.Get(33100));
+#endif // HAS_WEB_SERVER
   StartUPnP();
   if (CSettings::Get().GetBool("services.esenabled") && !StartEventServer())
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Warning, g_localizeStrings.Get(33102), g_localizeStrings.Get(33100));
   if (CSettings::Get().GetBool("services.esenabled") && !StartJSONRPCServer())
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Warning, g_localizeStrings.Get(33103), g_localizeStrings.Get(33100));
-  StartAirPlayServer();
+  
+  // note - airtunesserver has to start before airplay server (ios7 client detection bug)
   StartAirTunesServer();
+  StartAirPlayServer();
   StartRss();
 }
 
@@ -518,9 +548,22 @@ bool CNetworkServices::StartAirPlayServer()
   std::vector<std::pair<std::string, std::string> > txt;
   CNetworkInterface* iface = g_application.getNetwork().GetFirstConnectedInterface();
   txt.push_back(make_pair("deviceid", iface != NULL ? iface->GetMacAddress() : "FF:FF:FF:FF:FF:F2"));
-  txt.push_back(make_pair("features", "0x77"));
   txt.push_back(make_pair("model", "Xbmc,1"));
   txt.push_back(make_pair("srcvers", AIRPLAY_SERVER_VERSION_STR));
+
+  if (CSettings::Get().GetBool("services.airplayios8compat"))
+  {
+    // for ios8 clients we need to announce mirroring support
+    // else we won't get video urls anymore.
+    // We also announce photo caching support (as it seems faster and
+    // we have implemented it anyways). 
+    txt.push_back(make_pair("features", "0x20F7"));
+  }
+  else
+  {
+    txt.push_back(make_pair("features", "0x77"));
+  }
+
   CZeroconf::GetInstance()->PublishService("servers.airplay", "_airplay._tcp", g_infoManager.GetLabel(SYSTEM_FRIENDLY_NAME), g_advancedSettings.m_airPlayPort, txt);
 #endif // HAS_ZEROCONF
 
@@ -761,7 +804,8 @@ bool CNetworkServices::StopUPnP(bool bWait)
 bool CNetworkServices::StartUPnPClient()
 {
 #ifdef HAS_UPNP
-  if (!CSettings::Get().GetBool("services.upnpcontroller"))
+  if (!CSettings::Get().GetBool("services.upnpcontroller") ||
+      !CSettings::Get().GetBool("services.upnpserver"))
     return false;
 
   CLog::Log(LOGNOTICE, "starting upnp controller");
@@ -852,6 +896,8 @@ bool CNetworkServices::StopUPnPServer()
 #ifdef HAS_UPNP
   if (!IsUPnPRendererRunning())
     return true;
+
+  StopUPnPClient();
 
   CLog::Log(LOGNOTICE, "stopping upnp server");
   CUPnP::GetInstance()->StopServer();

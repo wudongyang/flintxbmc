@@ -76,30 +76,30 @@ namespace XBMCAddon
 
     public:
       inline ProxyExistingWindowInterceptor(CGUIWindow* window) :
-        cguiwindow(window) { TRACE; }
+        cguiwindow(window) { XBMC_TRACE; }
 
       virtual CGUIWindow* get();
     };
 
-    CGUIWindow* ProxyExistingWindowInterceptor::get() { TRACE; return cguiwindow; }
+    CGUIWindow* ProxyExistingWindowInterceptor::get() { XBMC_TRACE; return cguiwindow; }
 
-    Window::Window(const char* classname) throw (WindowException): 
-      AddonCallback(classname), isDisposed(false), window(NULL), iWindowId(-1),
+    Window::Window(bool discrim) throw (WindowException): 
+      isDisposed(false), window(NULL), iWindowId(-1),
       iOldWindowId(0), iCurrentControlId(3000), bModal(false), m_actionEvent(true),
       canPulse(true), existingWindow(false), destroyAfterDeInit(false)
     {
-      TRACE;
+      XBMC_TRACE;
     }
 
     /**
      * This just creates a default window.
      */
     Window::Window(int existingWindowId) throw (WindowException) : 
-      AddonCallback("Window"), isDisposed(false), window(NULL), iWindowId(-1),
+      isDisposed(false), window(NULL), iWindowId(-1),
       iOldWindowId(0), iCurrentControlId(3000), bModal(false), m_actionEvent(true),
       canPulse(false), existingWindow(true), destroyAfterDeInit(false)
     {
-      TRACE;
+      XBMC_TRACE;
       SingleLockWithDelayGuard gslock(g_graphicsContext,languageHook);
 
       if (existingWindowId == -1)
@@ -124,7 +124,7 @@ namespace XBMCAddon
 
     Window::~Window()
     {
-      TRACE;
+      XBMC_TRACE;
 
       deallocating();
     }
@@ -138,7 +138,7 @@ namespace XBMCAddon
 
     void Window::dispose()
     {
-      TRACE;
+      XBMC_TRACE;
 
       // this is called from non-scripting-language callstacks. Don't use the delayed call guard.
       CSingleLock lock(g_graphicsContext);
@@ -206,7 +206,7 @@ namespace XBMCAddon
 
     void Window::setWindow(InterceptorBase* _window) 
     { 
-      TRACE;
+      XBMC_TRACE;
       window = _window; 
       iWindowId = _window->get()->GetID(); 
 
@@ -216,7 +216,7 @@ namespace XBMCAddon
 
     int Window::getNextAvailalbeWindowId() throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       // window id's 13000 - 13100 are reserved for python
       // get first window id that is not in use
       int id = WINDOW_PYTHON_START;
@@ -230,7 +230,7 @@ namespace XBMCAddon
 
     void Window::popActiveWindowId()
     {
-      TRACE;
+      XBMC_TRACE;
       if (iOldWindowId != iWindowId &&
           iWindowId != ACTIVE_WINDOW)
         iOldWindowId = ACTIVE_WINDOW;
@@ -243,7 +243,7 @@ namespace XBMCAddon
      */
     Control* Window::GetControlById(int iControlId, CCriticalSection* gc) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
 
       // find in window vector first!!!
       // this saves us from creating a complete new control
@@ -373,10 +373,10 @@ namespace XBMCAddon
       pControl->dwWidth = (int)pGUIControl->GetWidth();
       pControl->dwPosX = (int)pGUIControl->GetXPosition();
       pControl->dwPosY = (int)pGUIControl->GetYPosition();
-      pControl->iControlUp = pGUIControl->GetControlIdUp();
-      pControl->iControlDown = pGUIControl->GetControlIdDown();
-      pControl->iControlLeft = pGUIControl->GetControlIdLeft();
-      pControl->iControlRight = pGUIControl->GetControlIdRight();
+      pControl->iControlUp = pGUIControl->GetNavigateAction(ACTION_MOVE_UP).GetNavigation();
+      pControl->iControlDown = pGUIControl->GetNavigateAction(ACTION_MOVE_DOWN).GetNavigation();
+      pControl->iControlLeft = pGUIControl->GetNavigateAction(ACTION_MOVE_LEFT).GetNavigation();
+      pControl->iControlRight = pGUIControl->GetNavigateAction(ACTION_MOVE_RIGHT).GetNavigation();
 
       // It got this far so means the control isn't actually in the vector of controls
       // so lets add it to save doing all that next time
@@ -388,14 +388,14 @@ namespace XBMCAddon
 
     void Window::PulseActionEvent()
     {
-      TRACE;
+      XBMC_TRACE;
       if (canPulse)
         m_actionEvent.Set();
     }
 
     bool Window::WaitForActionEvent(unsigned int milliseconds)
     {
-      TRACE;
+      XBMC_TRACE;
       // DO NOT MAKE THIS A DELAYED CALL!!!!
       bool ret = languageHook == NULL ? m_actionEvent.WaitMSec(milliseconds) : languageHook->WaitForEvent(m_actionEvent,milliseconds);
       if (ret)
@@ -405,7 +405,7 @@ namespace XBMCAddon
 
     bool Window::OnAction(const CAction &action)
     {
-      TRACE;
+      XBMC_TRACE;
       // do the base class window first, and the call to python after this
       bool ret = ref(window)->OnAction(action);
 
@@ -440,7 +440,7 @@ namespace XBMCAddon
 
     void Window::onAction(Action* action)
     {
-      TRACE;
+      XBMC_TRACE;
       // default onAction behavior
       if(action->id == ACTION_PREVIOUS_MENU || action->id == ACTION_NAV_BACK)
         close();
@@ -448,7 +448,7 @@ namespace XBMCAddon
 
     bool Window::OnMessage(CGUIMessage& message)
     {
-      TRACE;
+      XBMC_TRACE;
       switch (message.GetMessage())
       {
       case GUI_MSG_WINDOW_DEINIT:
@@ -503,25 +503,25 @@ namespace XBMCAddon
       return ref(window)->OnMessage(message);
     }
 
-    void Window::onControl(Control* action) { TRACE; /* do nothing by default */ }
-    void Window::onClick(int controlId) { TRACE; /* do nothing by default */ }
-    void Window::onDoubleClick(int controlId) { TRACE; /* do nothing by default */ }
-    void Window::onFocus(int controlId) { TRACE; /* do nothing by default */ }
-    void Window::onInit() { TRACE; /* do nothing by default */ }
+    void Window::onControl(Control* action) { XBMC_TRACE; /* do nothing by default */ }
+    void Window::onClick(int controlId) { XBMC_TRACE; /* do nothing by default */ }
+    void Window::onDoubleClick(int controlId) { XBMC_TRACE; /* do nothing by default */ }
+    void Window::onFocus(int controlId) { XBMC_TRACE; /* do nothing by default */ }
+    void Window::onInit() { XBMC_TRACE; /* do nothing by default */ }
 
     void Window::show()
     {
-      TRACE;
+      XBMC_TRACE;
       DelayedCallGuard dcguard(languageHook);
       popActiveWindowId();
 
-      std::vector<CStdString> params;
+      std::vector<std::string> params;
       CApplicationMessenger::Get().ActivateWindow(iWindowId, params, false);
     }
 
     void Window::setFocus(Control* pControl) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       if(pControl == NULL)
         throw WindowException("Object should be of type Control");
 
@@ -531,14 +531,14 @@ namespace XBMCAddon
 
     void Window::setFocusId(int iControlId)
     {
-      TRACE;
+      XBMC_TRACE;
       CGUIMessage msg = CGUIMessage(GUI_MSG_SETFOCUS,iWindowId,iControlId);
       g_windowManager.SendThreadMessage(msg, iWindowId);
     }
 
     Control* Window::getFocus() throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       SingleLockWithDelayGuard gslock(g_graphicsContext,languageHook);
 
       int iControlId = ref(window)->GetFocusedControlID();
@@ -550,7 +550,7 @@ namespace XBMCAddon
 
     long Window::getFocusId() throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       SingleLockWithDelayGuard gslock(g_graphicsContext,languageHook);
       int iControlId = ref(window)->GetFocusedControlID();
       if(iControlId == -1)
@@ -560,14 +560,14 @@ namespace XBMCAddon
 
     void Window::removeControl(Control* pControl) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       DelayedCallGuard dg(languageHook);
       doRemoveControl(pControl,&g_graphicsContext,true);
     }
 
     void Window::doRemoveControl(Control* pControl, CCriticalSection* gcontext, bool wait) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       // type checking, object should be of type Control
       if(pControl == NULL)
         throw WindowException("Object should be of type Control");
@@ -601,7 +601,7 @@ namespace XBMCAddon
 
     void Window::removeControls(std::vector<Control*> pControls) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       DelayedCallGuard dg(languageHook);
       int count = 1; int size = pControls.size();
       for (std::vector<Control*>::iterator iter = pControls.begin(); iter != pControls.end(); count++, iter++)
@@ -610,25 +610,25 @@ namespace XBMCAddon
 
     long Window::getHeight()
     {
-      TRACE;
+      XBMC_TRACE;
       return g_graphicsContext.GetHeight();
     }
 
     long Window::getWidth()
     {
-      TRACE;
+      XBMC_TRACE;
       return g_graphicsContext.GetWidth();
     }
 
     long Window::getResolution()
     {
-      TRACE;
+      XBMC_TRACE;
       return (long)g_graphicsContext.GetVideoResolution();
     }
 
     void Window::setCoordinateResolution(long res) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       if (res < RES_HDTV_1080i || res > RES_AUTORES)
         throw WindowException("Invalid resolution.");
 
@@ -638,56 +638,62 @@ namespace XBMCAddon
 
     void Window::setProperty(const char* key, const String& value)
     {
-      TRACE;
+      XBMC_TRACE;
       SingleLockWithDelayGuard gslock(g_graphicsContext,languageHook);
-      CStdString lowerKey = key;
+      std::string lowerKey = key;
+      StringUtils::ToLower(lowerKey);
 
-      ref(window)->SetProperty(lowerKey.ToLower(), value);
+      ref(window)->SetProperty(lowerKey, value);
     }
 
     String Window::getProperty(const char* key)
     {
-      TRACE;
+      XBMC_TRACE;
       SingleLockWithDelayGuard gslock(g_graphicsContext,languageHook);
-      CStdString lowerKey = key;
-      std::string value = ref(window)->GetProperty(lowerKey.ToLower()).asString();
+      std::string lowerKey = key;
+      StringUtils::ToLower(lowerKey);
+      std::string value = ref(window)->GetProperty(lowerKey).asString();
       return value;
     }
 
     void Window::clearProperty(const char* key)
     {
-      TRACE;
+      XBMC_TRACE;
       if (!key) return;
       SingleLockWithDelayGuard gslock(g_graphicsContext,languageHook);
 
-      CStdString lowerKey = key;
-      ref(window)->SetProperty(lowerKey.ToLower(), "");
+      std::string lowerKey = key;
+      StringUtils::ToLower(lowerKey);
+      ref(window)->SetProperty(lowerKey, "");
     }
 
     void Window::clearProperties()
     {
-      TRACE;
+      XBMC_TRACE;
       SingleLockWithDelayGuard gslock(g_graphicsContext,languageHook);
       ref(window)->ClearProperties();
     }
 
     void Window::close()
     {
-      TRACE;
+      XBMC_TRACE;
       bModal = false;
 
       if (!existingWindow)
         PulseActionEvent();
 
-      std::vector<CStdString> params;
-      CApplicationMessenger::Get().ActivateWindow(iOldWindowId, params, false);
+      std::vector<std::string> params;
+      {
+        DelayedCallGuard dcguard(languageHook);
+        CApplicationMessenger::Get().ActivateWindow(iOldWindowId, params, false);
+      }
 
       iOldWindowId = 0;
     }
 
     void Window::doModal()
     {
-      TRACE;
+      XBMC_TRACE;
       if (!existingWindow)
       {
         bModal = true;
@@ -724,14 +730,14 @@ namespace XBMCAddon
 
     void Window::addControl(Control* pControl) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       DelayedCallGuard dg(languageHook);
       doAddControl(pControl,&g_graphicsContext,true);
     }
 
     void Window::doAddControl(Control* pControl, CCriticalSection* gcontext, bool wait) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       if(pControl == NULL)
         throw WindowException("NULL Control passed to WindowBase::addControl");
 
@@ -756,8 +762,10 @@ namespace XBMCAddon
       pControl->iControlLeft = pControl->iControlId;
       pControl->iControlRight = pControl->iControlId;
 
-      pControl->pGUIControl->SetNavigation(pControl->iControlUp,
-          pControl->iControlDown, pControl->iControlLeft, pControl->iControlRight);
+      pControl->pGUIControl->SetNavigationAction(ACTION_MOVE_UP,    pControl->iControlUp);
+      pControl->pGUIControl->SetNavigationAction(ACTION_MOVE_DOWN,  pControl->iControlDown);
+      pControl->pGUIControl->SetNavigationAction(ACTION_MOVE_LEFT,  pControl->iControlLeft);
+      pControl->pGUIControl->SetNavigationAction(ACTION_MOVE_RIGHT, pControl->iControlRight);
 
       // add control to list and allocate recources for the control
       vecControls.push_back(AddonClass::Ref<Control>(pControl));
@@ -771,7 +779,7 @@ namespace XBMCAddon
 
     void Window::addControls(std::vector<Control*> pControls) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       SingleLockWithDelayGuard gslock(g_graphicsContext,languageHook);
       int count = 1; int size = pControls.size();
       for (std::vector<Control*>::iterator iter = pControls.begin(); iter != pControls.end(); count++, iter++)
@@ -780,14 +788,14 @@ namespace XBMCAddon
 
     Control* Window::getControl(int iControlId) throw (WindowException)
     {
-      TRACE;
+      XBMC_TRACE;
       DelayedCallGuard dg(languageHook);
       return GetControlById(iControlId,&g_graphicsContext);
     }
 
     void Action::setFromCAction(const CAction& action)
     {
-      TRACE;
+      XBMC_TRACE;
       id = action.GetID();
       buttonCode = action.GetButtonCode();
       fAmount1 = action.GetAmount(0);

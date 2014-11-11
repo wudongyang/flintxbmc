@@ -589,13 +589,11 @@ int udf25::GetUDFCache(UDFCacheType type, uint32_t nr, void *data)
 
 int udf25::ReadAt( int64_t pos, size_t len, unsigned char *data )
 {
-  int64_t ret;
-  ret = m_fp->Seek(pos, SEEK_SET);
-  if(ret != pos)
+  if (m_fp->Seek(pos, SEEK_SET) != pos)
     return -1;
 
-  ret = m_fp->Read(data, len);
-  if(ret < (int64_t)len)
+  ssize_t ret = m_fp->Read(data, len);
+  if ( ret < len)
   {
     CLog::Log(LOGERROR, "udf25::ReadFile - less data than requested available!" );
     return (int)ret;
@@ -718,6 +716,7 @@ int udf25::UDFFindPartition( int partnum, struct Partition *part )
         /* Partition Descriptor */
         UDFPartition( LogBlock, &part->Flags, &part->Number,
                       part->Contents, &part->Start, &part->Length );
+        part->Start_Correction = 0;
         part->valid = ( partnum == part->Number );
       } else if( ( TagID == 6 ) && ( !volvalid ) ) {
         /* Logical Volume Descriptor */
@@ -762,6 +761,8 @@ int udf25::UDFFindPartition( int partnum, struct Partition *part )
       UDFExtFileEntry( LogBlock, &File );
       if (File.Type == 250) {
         part->Start  += File.AD_chain[0].Location;
+        // we need to remember this correction because read positions are relative to the non-indirected partition start
+        part->Start_Correction = File.AD_chain[0].Location;
         part->Length  = File.AD_chain[0].Length;
         break;
       }
@@ -792,6 +793,7 @@ int udf25::UDFMapICB( struct AD ICB, struct Partition *partition, struct FileAD 
   memset(File, 0, sizeof(*File));
   File->Partition       = partition->Number;
   File->Partition_Start = partition->Start;
+  File->Partition_Start_Correction = partition->Start_Correction;
 
   do {
     if( DVDReadLBUDF( lbnum++, 1, LogBlock, 0 ) <= 0 )
@@ -1109,7 +1111,8 @@ long udf25::ReadFile(HANDLE hFile, unsigned char *pBuffer, long lSize)
     if(len == 0)
       break;
 
-    pos -= 32 * DVD_VIDEO_LB_LEN; /* why? */
+    // correct for partition indirection if applicable
+    pos -= bdfile->file->Partition_Start_Correction * DVD_VIDEO_LB_LEN;
 
     if((uint32_t)lSize < len)
       len = lSize;

@@ -37,6 +37,7 @@ enum ESHADERMETHOD
   SM_TEXTURE_NOBLEND,
   SM_MULTI_BLENDCOLOR,
   SM_TEXTURE_RGBA,
+  SM_TEXTURE_RGBA_OES,
   SM_TEXTURE_RGBA_BLENDCOLOR,
   SM_ESHADERCOUNT
 };
@@ -72,11 +73,12 @@ public:
 
   virtual void ApplyHardwareTransform(const TransformMatrix &matrix);
   virtual void RestoreHardwareTransform();
+  virtual bool SupportsStereo(RENDER_STEREO_MODE mode);
 
   virtual bool TestRender();
 
   virtual void Project(float &x, float &y, float &z);
-  
+
   void InitialiseGUIShader();
   void EnableGUIShader(ESHADERMETHOD method);
   void DisableGUIShader();
@@ -86,12 +88,13 @@ public:
   GLint GUIShaderGetCoord0();
   GLint GUIShaderGetCoord1();
   GLint GUIShaderGetUniCol();
+  GLint GUIShaderGetCoord0Matrix();
 
 protected:
   virtual void SetVSyncImpl(bool enable) = 0;
   virtual bool PresentRenderImpl(const CDirtyRegionList &dirty) = 0;
   void CalculateMaxTexturesize();
-  
+
   int        m_iVSyncMode;
   int        m_iVSyncErrors;
   int64_t    m_iSwapStamp;

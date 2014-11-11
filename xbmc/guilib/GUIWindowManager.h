@@ -33,6 +33,7 @@
 #include "IMsgTargetCallback.h"
 #include "DirtyRegionTracker.h"
 #include "utils/GlobalsHandling.h"
+#include "guilib/WindowIDs.h"
 #include <list>
 
 class CGUIDialog;
@@ -59,7 +60,7 @@ public:
   void Delete(int id);
   void ActivateWindow(int iWindowID, const CStdString &strPath = "");
   void ChangeActiveWindow(int iNewID, const CStdString &strPath = "");
-  void ActivateWindow(int iWindowID, const std::vector<CStdString>& params, bool swappingWindows = false);
+  void ActivateWindow(int iWindowID, const std::vector<std::string>& params, bool swappingWindows = false);
   void PreviousWindow();
 
   void CloseDialogs(bool forceClose = false) const;
@@ -153,7 +154,7 @@ private:
   CGUIWindow *GetTopMostDialog() const;
 
   friend class CApplicationMessenger;
-  void ActivateWindow_Internal(int windowID, const std::vector<CStdString> &params, bool swappingWindows);
+  void ActivateWindow_Internal(int windowID, const std::vector<std::string> &params, bool swappingWindows);
 
   typedef std::map<int, CGUIWindow *> WindowMap;
   WindowMap m_mapWindows;
@@ -177,6 +178,32 @@ private:
   bool m_initialized;
 
   CDirtyRegionTracker m_tracker;
+
+private:
+  class CGUIWindowManagerIdCache
+  {
+  public:
+    CGUIWindowManagerIdCache(void) : m_id(WINDOW_INVALID) {}
+    CGUIWindow *Get(int id)
+    {
+      if (id == m_id)
+        return m_window;
+      return NULL;
+    }
+    void Set(int id, CGUIWindow *window)
+    {
+      m_id = id;
+      m_window = window;
+    }
+    void Invalidate(void)
+    {
+      m_id = WINDOW_INVALID;
+    }
+  private:
+    int m_id;
+    CGUIWindow *m_window;
+  };
+  mutable CGUIWindowManagerIdCache m_idCache;
 };
 
 /*!

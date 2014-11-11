@@ -79,27 +79,36 @@ public:
     }
   CStdString name;
   bool isConnected;
+  int screen;
   int w;
   int h;
   int x;
   int y;
+  int crtc;
   int wmm;
   int hmm;
   std::vector<XMode> modes;
+  bool isRotated;
 };
 
 class CXRandR
 {
 public:
   CXRandR(bool query=false);
-  bool Query(bool force=false);
+  bool Query(bool force=false, bool ignoreoff=true);
+  bool Query(bool force, int screennum, bool ignoreoff=true);
   std::vector<XOutput> GetModes(void);
-  XOutput GetCurrentOutput();
   XMode   GetCurrentMode(CStdString outputName);
+  XMode   GetPreferredMode(CStdString outputName);
+  XOutput *GetOutput(CStdString outputName);
   bool SetMode(XOutput output, XMode mode);
   void LoadCustomModeLinesToAllOutputs(void);
   void SaveState();
-  void RestoreState();
+  void SetNumScreens(unsigned int num);
+  bool IsOutputConnected(CStdString name);
+  bool TurnOffOutput(CStdString name);
+  bool TurnOnOutput(CStdString name);
+  int GetCrtc(int x, int y);
   //bool Has1080i();
   //bool Has1080p();
   //bool Has720p();
@@ -107,10 +116,10 @@ public:
 
 private:
   bool m_bInit;
-  std::vector<XOutput> m_current;
   std::vector<XOutput> m_outputs;
   CStdString m_currentOutput;
   CStdString m_currentMode;
+  unsigned int m_numScreens;
 };
 
 extern CXRandR g_xrandr;

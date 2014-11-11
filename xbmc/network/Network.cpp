@@ -28,9 +28,10 @@
 #include "utils/log.h"
 #ifdef TARGET_WINDOWS
 #include "utils/SystemInfo.h"
+#include "win32/WIN32Util.h"
+#include "utils/CharsetConverter.h"
 #endif
-
-using namespace std;
+#include "utils/StringUtils.h"
 
 /* slightly modified in_ether taken from the etherboot project (http://sourceforge.net/projects/etherboot) */
 bool in_ether (const char *bufp, unsigned char *addr)
@@ -158,19 +159,25 @@ int CNetwork::ParseHex(char *str, unsigned char *addr)
    return len;
 }
 
-CStdString CNetwork::GetHostName(void)
+std::string CNetwork::GetHostName(void)
 {
   char hostName[128];
   if (gethostname(hostName, sizeof(hostName)))
-    return CStdString("unknown");
-  else
-    return CStdString(hostName);
+    return "unknown";
+
+  std::string hostStr;
+#ifdef TARGET_WINDOWS
+  g_charsetConverter.systemToUtf8(hostName, hostStr);
+#else
+  hostStr = hostName;
+#endif
+  return hostStr;
 }
 
 CNetworkInterface* CNetwork::GetFirstConnectedInterface()
 {
-   vector<CNetworkInterface*>& ifaces = GetInterfaceList();
-   vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
+   std::vector<CNetworkInterface*>& ifaces = GetInterfaceList();
+   std::vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
    while (iter != ifaces.end())
    {
       CNetworkInterface* iface = *iter;
@@ -186,15 +193,15 @@ bool CNetwork::HasInterfaceForIP(unsigned long address)
 {
    unsigned long subnet;
    unsigned long local;
-   vector<CNetworkInterface*>& ifaces = GetInterfaceList();
-   vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
+   std::vector<CNetworkInterface*>& ifaces = GetInterfaceList();
+   std::vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
    while (iter != ifaces.end())
    {
       CNetworkInterface* iface = *iter;
       if (iface && iface->IsConnected())
       {
-         subnet = ntohl(inet_addr(iface->GetCurrentNetmask()));
-         local = ntohl(inet_addr(iface->GetCurrentIPAddress()));
+         subnet = ntohl(inet_addr(iface->GetCurrentNetmask().c_str()));
+         local = ntohl(inet_addr(iface->GetCurrentIPAddress().c_str()));
          if( (address & subnet) == (local & subnet) )
             return true;
       }
@@ -213,7 +220,7 @@ bool CNetwork::IsAvailable(bool wait /*= false*/)
     //       wait for 5 seconds here.
   }
 
-  vector<CNetworkInterface*>& ifaces = GetInterfaceList();
+  std::vector<CNetworkInterface*>& ifaces = GetInterfaceList();
   return (ifaces.size() != 0);
 }
 
@@ -222,14 +229,14 @@ bool CNetwork::IsConnected()
    return GetFirstConnectedInterface() != NULL;
 }
 
-CNetworkInterface* CNetwork::GetInterfaceByName(CStdString& name)
+CNetworkInterface* CNetwork::GetInterfaceByName(const std::string& name)
 {
-   vector<CNetworkInterface*>& ifaces = GetInterfaceList();
-   vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
+   std::vector<CNetworkInterface*>& ifaces = GetInterfaceList();
+   std::vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
    while (iter != ifaces.end())
    {
       CNetworkInterface* iface = *iter;
-      if (iface && iface->GetName().Equals(name))
+      if (iface && iface->GetName() == name)
          return iface;
       ++iter;
    }
@@ -418,9 +425,9 @@ bool CNetwork::PingHost(unsigned long ipaddr, unsigned short port, unsigned int 
   if (err_msg && *err_msg)
   {
 #ifdef TARGET_WINDOWS
-    CStdString sock_err = WUSysMsg(WSAGetLastError());
+    std::string sock_err = CWIN32Util::WUSysMsg(WSAGetLastError());
 #else
-    CStdString sock_err = strerror(errno);
+    std::string sock_err = strerror(errno);
 #endif
 
     CLog::Log(LOGERROR, "%s(%s:%d) - %s (%s)", __FUNCTION__, inet_ntoa(addr.sin_addr), port, err_msg, sock_err.c_str());
@@ -435,16 +442,7 @@ bool CNetwork::PingHost(unsigned long ipaddr, unsigned short port, unsigned int 
 int CreateTCPServerSocket(const int port, const bool bindLocal, const int backlog, const char *callerName)
 {
   struct sockaddr_storage addr;
-  struct sockaddr_in6 *s6;
-  struct sockaddr_in  *s4;
-  int    sock;
-  bool   v4_fallback = false;
-#ifdef TARGET_WINDOWS
-  // Windows XP and earlier don't support the IPV6_V6ONLY socket option
-  // so always fall back to IPv4 directly to keep old functionality
-  if (CSysInfo::GetWindowsVersion() <= CSysInfo::WindowsVersionWinXP)
-    v4_fallback = true;
-#endif
+  int    sock = -1;
 
 #ifdef WINSOCK_VERSION
   int yes = 1;
@@ -454,65 +452,65 @@ int CreateTCPServerSocket(const int port, const bool bindLocal, const int backlo
   unsigned int no = 0;
 #endif
   
-  memset(&addr, 0, sizeof(addr));
-  
-  if (!v4_fallback &&
-     (sock = socket(PF_INET6, SOCK_STREAM, IPPROTO_TCP)) >= 0)
+  // first try ipv6
+  if ((sock = socket(PF_INET6, SOCK_STREAM, IPPROTO_TCP)) >= 0)
   {
     // in case we're on ipv6, make sure the socket is dual stacked
     if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&no, sizeof(no)) < 0)
     {
 #ifdef _MSC_VER
-      CStdString sock_err = WUSysMsg(WSAGetLastError());
+      std::string sock_err = CWIN32Util::WUSysMsg(WSAGetLastError());
 #else
-      CStdString sock_err = strerror(errno);
+      std::string sock_err = strerror(errno);
 #endif
       CLog::Log(LOGWARNING, "%s Server: Only IPv6 supported (%s)", callerName, sock_err.c_str());
     }
-  }
-  else
-  {
-    v4_fallback = true;
-    sock = socket(PF_INET, SOCK_STREAM, 0);
-  }
-  
-  if (sock == INVALID_SOCKET)
-  {
-    CLog::Log(LOGERROR, "%s Server: Failed to create serversocket", callerName);
-    return INVALID_SOCKET;
-  }
 
-  setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
-  
-  if (v4_fallback)
-  {
-    addr.ss_family = AF_INET;
-    s4 = (struct sockaddr_in *) &addr;
-    s4->sin_port = htons(port);
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
 
-    if (bindLocal)
-      s4->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    else
-      s4->sin_addr.s_addr = htonl(INADDR_ANY);
-  }
-  else
-  {
+    struct sockaddr_in6 *s6;
+    memset(&addr, 0, sizeof(addr));
     addr.ss_family = AF_INET6;
     s6 = (struct sockaddr_in6 *) &addr;
     s6->sin6_port = htons(port);
-
     if (bindLocal)
       s6->sin6_addr = in6addr_loopback;
     else
       s6->sin6_addr = in6addr_any;
-  }
 
-  if (::bind( sock, (struct sockaddr *) &addr,
-            (addr.ss_family == AF_INET6) ? sizeof(struct sockaddr_in6) :
-                                           sizeof(struct sockaddr_in)  ) < 0)
+    if (bind( sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in6)) < 0)
+    {
+      closesocket(sock);
+      sock = -1;
+      CLog::Log(LOGDEBUG, "%s Server: Failed to bind ipv6 serversocket, trying ipv4", callerName);
+    }
+  }
+  
+  // ipv4 fallback
+  if (sock < 0 && (sock = socket(PF_INET, SOCK_STREAM, 0)) >= 0)
   {
-    closesocket(sock);
-    CLog::Log(LOGERROR, "%s Server: Failed to bind serversocket", callerName);
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
+
+    struct sockaddr_in  *s4;
+    memset(&addr, 0, sizeof(addr));
+    addr.ss_family = AF_INET;
+    s4 = (struct sockaddr_in *) &addr;
+    s4->sin_port = htons(port);
+    if (bindLocal)
+      s4->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    else
+      s4->sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if (bind( sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in)) < 0)
+    {
+      closesocket(sock);
+      CLog::Log(LOGERROR, "%s Server: Failed to bind ipv4 serversocket", callerName);
+      return INVALID_SOCKET;
+    }
+  }
+  else if (sock < 0)
+  {
+    CLog::Log(LOGERROR, "%s Server: Failed to create serversocket", callerName);
     return INVALID_SOCKET;
   }
 

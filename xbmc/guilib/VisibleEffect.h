@@ -33,6 +33,7 @@ class CGUIListItem;
 #include "Geometry.h"         // for CPoint, CRect
 #include "utils/StdString.h"
 #include "boost/shared_ptr.hpp"
+#include "interfaces/info/InfoBool.h"
 
 enum ANIMATION_TYPE
 {
@@ -177,14 +178,13 @@ public:
 private:
   void Calculate(const CPoint &point);
   void AddEffect(const CStdString &type, const TiXmlElement *node, const CRect &rect);
-  void AddEffect(CAnimEffect *effect);
 
   enum ANIM_REPEAT { ANIM_REPEAT_NONE = 0, ANIM_REPEAT_PULSE, ANIM_REPEAT_LOOP };
 
   // type of animation
   ANIMATION_TYPE m_type;
   bool m_reversible;
-  unsigned int m_condition;
+  INFO::InfoPtr m_condition;
 
   // conditional anims can repeat
   ANIM_REPEAT m_repeatAnim;

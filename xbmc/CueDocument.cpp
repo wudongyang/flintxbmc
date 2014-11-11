@@ -107,7 +107,7 @@ bool CCueDocument::Parse(const CStdString &strFile)
     {
       if (bCurrentFileChanged)
       {
-        OutputDebugString("Track split over multiple files, unsupported ('" + strFile + "')\n");
+        CLog::Log(LOGERROR, "Track split over multiple files, unsupported ('%s')", strFile.c_str());
         return false;
       }
 
@@ -115,7 +115,7 @@ bool CCueDocument::Parse(const CStdString &strFile)
       time = ExtractTimeFromIndex(strLine);
       if (time == -1)
       { // Error!
-        OutputDebugString("Mangled Time in INDEX 0x tag in CUE file!\n");
+        CLog::Log(LOGERROR, "Mangled Time in INDEX 0x tag in CUE file!");
         return false;
       }
       if (m_iTotalTracks > 0)  // Set the end time of the last track
@@ -127,29 +127,20 @@ bool CCueDocument::Parse(const CStdString &strFile)
     else if (StringUtils::StartsWithNoCase(strLine,"TITLE"))
     {
       if (m_iTotalTracks == -1) // No tracks yet
-        ExtractQuoteInfo(strLine, m_strAlbum);
-      else if (!ExtractQuoteInfo(strLine, m_Track[m_iTotalTracks].strTitle))
-      {
-        // lets manage tracks titles without quotes
-        CStdString titleNoQuote = strLine.Mid(5);
-        titleNoQuote.TrimLeft();
-        if (!titleNoQuote.IsEmpty())
-        {
-          g_charsetConverter.unknownToUTF8(titleNoQuote);
-          m_Track[m_iTotalTracks].strTitle = titleNoQuote;
-        }
-      }
+        m_strAlbum = ExtractInfo(strLine.substr(5));
+      else
+        m_Track[m_iTotalTracks].strTitle = ExtractInfo(strLine.substr(5));
     }
     else if (StringUtils::StartsWithNoCase(strLine,"PERFORMER"))
     {
       if (m_iTotalTracks == -1) // No tracks yet
-        ExtractQuoteInfo(strLine, m_strArtist);
+        m_strArtist = ExtractInfo(strLine.substr(9));
       else // New Artist for this track
-        ExtractQuoteInfo(strLine, m_Track[m_iTotalTracks].strArtist);
+        m_Track[m_iTotalTracks].strArtist = ExtractInfo(strLine.substr(9));
     }
     else if (StringUtils::StartsWithNoCase(strLine,"TRACK"))
     {
-      int iTrackNumber = ExtractNumericInfo(strLine.Mid(5));
+      int iTrackNumber = ExtractNumericInfo(strLine.substr(5));
 
       m_iTotalTracks++;
 
@@ -166,7 +157,7 @@ bool CCueDocument::Parse(const CStdString &strFile)
     }
     else if (StringUtils::StartsWithNoCase(strLine,"REM DISCNUMBER"))
     {
-      int iDiscNumber = ExtractNumericInfo(strLine.Mid(14));
+      int iDiscNumber = ExtractNumericInfo(strLine.substr(14));
       if (iDiscNumber > 0)
         m_iDiscNumber = iDiscNumber;
     }
@@ -176,7 +167,7 @@ bool CCueDocument::Parse(const CStdString &strFile)
       if(strCurrentFile.size() > 0)
         bCurrentFileChanged = true;
 
-      ExtractQuoteInfo(strLine, strCurrentFile);
+      strCurrentFile = ExtractInfo(strLine.substr(4));
 
       // Resolve absolute paths (if needed).
       if (strCurrentFile.length() > 0)
@@ -184,31 +175,22 @@ bool CCueDocument::Parse(const CStdString &strFile)
     }
     else if (StringUtils::StartsWithNoCase(strLine,"REM DATE"))
     {
-      int iYear = ExtractNumericInfo(strLine.Mid(8));
+      int iYear = ExtractNumericInfo(strLine.substr(8));
       if (iYear > 0)
         m_iYear = iYear;
     }
     else if (StringUtils::StartsWithNoCase(strLine,"REM GENRE"))
     {
-      if (!ExtractQuoteInfo(strLine, m_strGenre))
-      {
-        CStdString genreNoQuote = strLine.Mid(9);
-        genreNoQuote.TrimLeft();
-        if (!genreNoQuote.IsEmpty())
-        {
-          g_charsetConverter.unknownToUTF8(genreNoQuote);
-          m_strGenre = genreNoQuote;
-        }
-      }
+      m_strGenre = ExtractInfo(strLine.substr(9));
     }
     else if (StringUtils::StartsWithNoCase(strLine,"REM REPLAYGAIN_ALBUM_GAIN"))
-      m_replayGainAlbumGain = (float)atof(strLine.Mid(26));
+      m_replayGainAlbumGain = (float)atof(strLine.substr(26).c_str());
     else if (StringUtils::StartsWithNoCase(strLine,"REM REPLAYGAIN_ALBUM_PEAK"))
-      m_replayGainAlbumPeak = (float)atof(strLine.Mid(26));
+      m_replayGainAlbumPeak = (float)atof(strLine.substr(26).c_str());
     else if (StringUtils::StartsWithNoCase(strLine,"REM REPLAYGAIN_TRACK_GAIN") && m_iTotalTracks >= 0)
-      m_Track[m_iTotalTracks].replayGainTrackGain = (float)atof(strLine.Mid(26));
+      m_Track[m_iTotalTracks].replayGainTrackGain = (float)atof(strLine.substr(26).c_str());
     else if (StringUtils::StartsWithNoCase(strLine,"REM REPLAYGAIN_TRACK_PEAK") && m_iTotalTracks >= 0)
-      m_Track[m_iTotalTracks].replayGainTrackPeak = (float)atof(strLine.Mid(26));
+      m_Track[m_iTotalTracks].replayGainTrackPeak = (float)atof(strLine.substr(26).c_str());
   }
 
   // reset track counter to 0, and fill in the last tracks end time
@@ -216,7 +198,7 @@ bool CCueDocument::Parse(const CStdString &strFile)
   if (m_iTotalTracks >= 0)
     m_Track[m_iTotalTracks].iEndTime = 0;
   else
-    OutputDebugString("No INDEX 01 tags in CUE file!\n");
+    CLog::Log(LOGERROR, "No INDEX 01 tags in CUE file!");
   m_file.Close();
   if (m_iTotalTracks >= 0)
   {
@@ -246,7 +228,7 @@ void CCueDocument::GetSongs(VECSONGS &songs)
     if ( m_iDiscNumber > 0 )  
       song.iTrack |= (m_iDiscNumber << 16); // see CMusicInfoTag::GetDiscNumber()
     if (m_Track[i].strTitle.length() == 0) // No track information for this track!
-      song.strTitle.Format("Track %2d", i + 1);
+      song.strTitle = StringUtils::Format("Track %2d", i + 1);
     else
       song.strTitle = m_Track[i].strTitle;
     song.strFileName =  m_Track[i].strFile;
@@ -290,7 +272,7 @@ bool CCueDocument::ReadNextLine(CStdString &szLine)
   {
     // Remove the white space at the beginning and end of the line.
     szLine = m_szBuffer;
-    szLine.Trim();
+    StringUtils::Trim(szLine);
     if (!szLine.empty())
       return true;
     // If we are here, we have an empty line so try the next line
@@ -299,19 +281,26 @@ bool CCueDocument::ReadNextLine(CStdString &szLine)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-// Function: ExtractQuoteInfo()
+// Function: ExtractInfo()
 // Extracts the information in quotes from the string line, returning it in quote
 ////////////////////////////////////////////////////////////////////////////////////
-bool CCueDocument::ExtractQuoteInfo(const CStdString &line, CStdString &quote)
+CStdString CCueDocument::ExtractInfo(const CStdString &line)
 {
-  quote.Empty();
-  int left = line.Find('\"');
-  if (left < 0) return false;
-  int right = line.Find('\"', left + 1);
-  if (right < 0) return false;
-  quote = line.Mid(left + 1, right - left - 1);
-  g_charsetConverter.unknownToUTF8(quote);
-  return true;
+  size_t left = line.find('\"');
+  if (left != std::string::npos)
+  {
+    size_t right = line.find('\"', left + 1);
+    if (right != std::string::npos)
+    {
+      CStdString text = line.substr(left + 1, right - left - 1);
+      g_charsetConverter.unknownToUTF8(text);
+      return text;
+    }
+  }
+  CStdString text = line;
+  StringUtils::Trim(text);
+  g_charsetConverter.unknownToUTF8(text);
+  return text;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -324,18 +313,17 @@ bool CCueDocument::ExtractQuoteInfo(const CStdString &line, CStdString &quote)
 int CCueDocument::ExtractTimeFromIndex(const CStdString &index)
 {
   // Get rid of the index number and any whitespace
-  CStdString numberTime = index.Mid(5);
-  numberTime.TrimLeft();
-  while (!numberTime.IsEmpty())
+  CStdString numberTime = index.substr(5);
+  StringUtils::TrimLeft(numberTime);
+  while (!numberTime.empty())
   {
     if (!isdigit(numberTime[0]))
       break;
     numberTime.erase(0, 1);
   }
-  numberTime.TrimLeft();
+  StringUtils::TrimLeft(numberTime);
   // split the resulting string
-  CStdStringArray time;
-  StringUtils::SplitString(numberTime, ":", time);
+  vector<string> time = StringUtils::Split(numberTime, ":");
   if (time.size() != 3)
     return -1;
 
@@ -353,8 +341,8 @@ int CCueDocument::ExtractTimeFromIndex(const CStdString &index)
 int CCueDocument::ExtractNumericInfo(const CStdString &info)
 {
   CStdString number(info);
-  number.TrimLeft();
-  if (number.IsEmpty() || !isdigit(number[0]))
+  StringUtils::TrimLeft(number);
+  if (number.empty() || !isdigit(number[0]))
     return -1;
   return atoi(number.c_str());
 }
@@ -378,7 +366,7 @@ bool CCueDocument::ResolvePath(CStdString &strPath, const CStdString &strBase)
     CDirectory::GetDirectory(strDirectory,items);
     for (int i=0;i<items.Size();++i)
     {
-      if (items[i]->GetPath().Equals(strPath))
+      if (items[i]->IsPath(strPath))
       {
         strPath = items[i]->GetPath();
         return true;

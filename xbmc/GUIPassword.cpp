@@ -30,12 +30,12 @@
 #include "profiles/dialogs/GUIDialogProfileSettings.h"
 #include "Util.h"
 #include "settings/MediaSourceSettings.h"
-#include "settings/Setting.h"
 #include "settings/Settings.h"
 #include "guilib/GUIWindowManager.h"
 #include "FileItem.h"
 #include "guilib/LocalizeStrings.h"
 #include "utils/log.h"
+#include "utils/StringUtils.h"
 #include "view/ViewStateSettings.h"
 
 CGUIPassword::CGUIPassword(void)
@@ -138,10 +138,10 @@ bool CGUIPassword::CheckStartUpLock()
       iVerifyPasswordResult = VerifyPassword(CProfilesManager::Get().GetMasterProfile().getLockMode(), strPassword, strHeader);
       if (iVerifyPasswordResult != 0 )
       {
-        CStdString strLabel,strLabel1;
+        CStdString strLabel1;
         strLabel1 = g_localizeStrings.Get(12343);
         int iLeft = g_passwordManager.iMasterLockRetriesLeft-i;
-        strLabel.Format("%i %s",iLeft,strLabel1.c_str());
+        CStdString strLabel = StringUtils::Format("%i %s", iLeft, strLabel1.c_str());
 
         // PopUp OK and Display: MasterLock mode has changed but no no Mastercode has been set!
         CGUIDialogOK::ShowAndGetInput(20076, 12367, 12368, strLabel);
@@ -202,7 +202,7 @@ bool CGUIPassword::IsProfileLockUnlocked(int iProfile, bool& bCanceled, bool pro
     if (!prompt)
       return (profile->getLockMode() == LOCK_MODE_EVERYONE);
 
-    if (profile->getDate().IsEmpty() &&
+    if (profile->getDate().empty() &&
        (CProfilesManager::Get().GetMasterProfile().getLockMode() == LOCK_MODE_EVERYONE ||
         profile->getLockMode() == LOCK_MODE_EVERYONE))
     {
@@ -288,7 +288,9 @@ void CGUIPassword::UpdateMasterLockRetryCount(bool bResetCount)
     }
     CStdString dlgLine1 = "";
     if (0 < g_passwordManager.iMasterLockRetriesLeft)
-      dlgLine1.Format("%d %s", g_passwordManager.iMasterLockRetriesLeft, g_localizeStrings.Get(12343));
+      dlgLine1 = StringUtils::Format("%d %s",
+                                     g_passwordManager.iMasterLockRetriesLeft,
+                                     g_localizeStrings.Get(12343).c_str());
     CGUIDialogOK::ShowAndGetInput(20075, 12345, dlgLine1, 0);
   }
   else
@@ -350,16 +352,22 @@ bool CGUIPassword::CheckSettingLevelLock(const SettingLevel& level, bool enforce
 
 }
 
+bool IsSettingsWindow(int iWindowID)
+{
+  return (iWindowID >= WINDOW_SCREEN_CALIBRATION && iWindowID <= WINDOW_SETTINGS_MYPVR)
+       || iWindowID == WINDOW_SKIN_SETTINGS;
+}
+
 bool CGUIPassword::CheckMenuLock(int iWindowID)
 {
   bool bCheckPW         = false;
   int iSwitch = iWindowID;
 
   // check if a settings subcategory was called from other than settings window
-  if (iWindowID >= WINDOW_SCREEN_CALIBRATION && iWindowID <= WINDOW_SETTINGS_MYPVR)
+  if (IsSettingsWindow(iWindowID))
   {
     int iCWindowID = g_windowManager.GetActiveWindow();
-    if (iCWindowID != WINDOW_SETTINGS_MENU && (iCWindowID < WINDOW_SCREEN_CALIBRATION || iCWindowID > WINDOW_SETTINGS_MYPVR))
+    if (iCWindowID != WINDOW_SETTINGS_MENU && !IsSettingsWindow(iCWindowID))
       iSwitch = WINDOW_SETTINGS_MENU;
   }
 

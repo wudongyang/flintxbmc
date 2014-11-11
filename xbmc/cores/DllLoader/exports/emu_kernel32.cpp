@@ -20,6 +20,7 @@
 
 #include "emu_kernel32.h"
 #include "emu_dummy.h"
+#include "CompileInfo.h"
 #include "utils/log.h"
 
 #include "storage/IoSupport.h"
@@ -37,6 +38,8 @@
 #define __except catch
 #endif
 
+#include <string.h>
+#include <vector>
 using namespace std;
 
 vector<string> m_vecAtoms;
@@ -103,7 +106,7 @@ extern "C" BOOL WINAPI dllFindClose(HANDLE hFile)
 #ifdef TARGET_WINDOWS
 static void to_WIN32_FIND_DATA(LPWIN32_FIND_DATAW wdata, LPWIN32_FIND_DATA data)
 {
-  CStdString strname;
+  std::string strname;
   g_charsetConverter.wToUTF8(wdata->cFileName, strname);
   size_t size = sizeof(data->cFileName) / sizeof(char);
   strncpy(data->cFileName, strname.c_str(), size);
@@ -128,7 +131,7 @@ static void to_WIN32_FIND_DATA(LPWIN32_FIND_DATAW wdata, LPWIN32_FIND_DATA data)
 
 static void to_WIN32_FIND_DATAW(LPWIN32_FIND_DATA data, LPWIN32_FIND_DATAW wdata)
 {
-  CStdStringW strwname;
+  std::wstring strwname;
   g_charsetConverter.utf8ToW(data->cFileName, strwname, false);
   size_t size = sizeof(wdata->cFileName) / sizeof(wchar_t);
   wcsncpy(wdata->cFileName, strwname.c_str(), size);
@@ -166,7 +169,7 @@ extern "C" HANDLE WINAPI dllFindFirstFileA(LPCTSTR lpFileName, LPWIN32_FIND_DATA
 
 #ifdef TARGET_WINDOWS
   struct _WIN32_FIND_DATAW FindFileDataW;
-  CStdStringW strwfile;
+  std::wstring strwfile;
   g_charsetConverter.utf8ToW(CSpecialProtocol::TranslatePath(p), strwfile, false);
   HANDLE res = FindFirstFileW(strwfile.c_str(), &FindFileDataW);
   if (res != INVALID_HANDLE_VALUE)
@@ -279,32 +282,6 @@ static void DumpSystemInfo(const SYSTEM_INFO* si)
   CLog::Log(LOGDEBUG, "  Processor revision: 0x%x\n", si->wProcessorRevision);
 }
 #endif
-
-extern "C" void WINAPI dllGetSystemInfo(LPSYSTEM_INFO lpSystemInfo)
-{
-#ifdef API_DEBUG
-  CLog::Log(LOGDEBUG, "GetSystemInfo(0x%x) =>", lpSystemInfo);
-#endif
-#ifdef TARGET_WINDOWS
-  // VS 2003 complains about x even so it's defined
-  lpSystemInfo->wProcessorArchitecture = 0; //#define PROCESSOR_ARCHITECTURE_INTEL 0
-#else
-  lpSystemInfo->x.wProcessorArchitecture = 0; //#define PROCESSOR_ARCHITECTURE_INTEL 0
-#endif
-  lpSystemInfo->dwPageSize = 4096;   //Xbox page size
-  lpSystemInfo->lpMinimumApplicationAddress = (void *)0x00000000;
-  lpSystemInfo->lpMaximumApplicationAddress = (void *)0x7fffffff;
-  lpSystemInfo->dwActiveProcessorMask = 1;
-  lpSystemInfo->dwNumberOfProcessors = 1;
-  lpSystemInfo->dwProcessorType = 586;  //#define PROCESSOR_INTEL_PENTIUM 586
-  lpSystemInfo->wProcessorLevel = 6;
-  //lpSystemInfo->wProcessorLevel = 5;
-  lpSystemInfo->wProcessorRevision = 0x080A;
-  lpSystemInfo->dwAllocationGranularity = 0x10000; //virtualalloc reserve block size
-#ifdef API_DEBUG
-  DumpSystemInfo(lpSystemInfo);
-#endif
-}  //hardcode for xbox processor type;
 
 extern "C" UINT WINAPI dllGetPrivateProfileIntA(
     LPCSTR lpAppName,
@@ -475,7 +452,7 @@ extern "C" int WINAPI dllGetStartupInfoA(LPSTARTUPINFOA lpStartupInfo)
   lpStartupInfo->lpDesktop = NULL;
   lpStartupInfo->lpReserved = NULL;
   lpStartupInfo->lpReserved2 = 0;
-  lpStartupInfo->lpTitle = (LPTSTR)"XBMC";
+  lpStartupInfo->lpTitle = (LPTSTR)CCompileInfo::GetAppName();
   lpStartupInfo->wShowWindow = 0;
   return 1;
 }
@@ -985,7 +962,7 @@ extern "C" HANDLE WINAPI dllCreateFileA(
     IN HANDLE hTemplateFile
     )
 {
-  return CreateFileA(CSpecialProtocol::TranslatePath(lpFileName), dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+  return CreateFileA(CSpecialProtocol::TranslatePath(lpFileName).c_str(), dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 }
 
 extern "C" BOOL WINAPI dllLockFile(HANDLE hFile, DWORD dwFileOffsetLow, DWORD dwFileOffsetHigh, DWORD nNumberOffBytesToLockLow, DWORD nNumberOffBytesToLockHigh)

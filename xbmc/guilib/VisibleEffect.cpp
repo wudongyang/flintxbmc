@@ -25,6 +25,7 @@
 #include "utils/StringUtils.h"
 #include "Tween.h"
 #include "utils/XBMCTinyXML.h"
+#include "utils/XMLUtils.h"
 
 using namespace std;
 
@@ -186,20 +187,20 @@ CSlideEffect::CSlideEffect(const TiXmlElement *node) : CAnimEffect(node, EFFECT_
   const char *startPos = node->Attribute("start");
   if (startPos)
   {
-    vector<CStdString> commaSeparated;
-    StringUtils::SplitString(startPos, ",", commaSeparated);
+    vector<string> commaSeparated = StringUtils::Split(startPos, ",");
     if (commaSeparated.size() > 1)
       m_startY = (float)atof(commaSeparated[1].c_str());
-    m_startX = (float)atof(commaSeparated[0].c_str());
+    if (!commaSeparated.empty())
+      m_startX = (float)atof(commaSeparated[0].c_str());
   }
   const char *endPos = node->Attribute("end");
   if (endPos)
   {
-    vector<CStdString> commaSeparated;
-    StringUtils::SplitString(endPos, ",", commaSeparated);
+    vector<string> commaSeparated = StringUtils::Split(endPos, ",");
     if (commaSeparated.size() > 1)
       m_endY = (float)atof(commaSeparated[1].c_str());
-    m_endX = (float)atof(commaSeparated[0].c_str());
+    if (!commaSeparated.empty())
+      m_endX = (float)atof(commaSeparated[0].c_str());
   }
 }
 
@@ -226,11 +227,11 @@ CRotateEffect::CRotateEffect(const TiXmlElement *node, EFFECT_TYPE effect) : CAn
       m_autoCenter = true;
     else
     {
-      vector<CStdString> commaSeparated;
-      StringUtils::SplitString(centerPos, ",", commaSeparated);
+      vector<string> commaSeparated = StringUtils::Split(centerPos, ",");
       if (commaSeparated.size() > 1)
         m_center.y = (float)atof(commaSeparated[1].c_str());
-      m_center.x = (float)atof(commaSeparated[0].c_str());
+      if (!commaSeparated.empty())
+        m_center.x = (float)atof(commaSeparated[0].c_str());
     }
   }
 }
@@ -266,8 +267,7 @@ CZoomEffect::CZoomEffect(const TiXmlElement *node, const CRect &rect) : CAnimEff
   const char *start = node->Attribute("start");
   if (start)
   {
-    CStdStringArray params;
-    StringUtils::SplitString(start, ",", params);
+    vector<string> params = StringUtils::Split(start, ",");
     if (params.size() == 1)
     {
       m_startX = (float)atof(params[0].c_str());
@@ -292,8 +292,7 @@ CZoomEffect::CZoomEffect(const TiXmlElement *node, const CRect &rect) : CAnimEff
   const char *end = node->Attribute("end");
   if (end)
   {
-    CStdStringArray params;
-    StringUtils::SplitString(end, ",", params);
+    vector<string> params = StringUtils::Split(end, ",");
     if (params.size() == 1)
     {
       m_endX = (float)atof(params[0].c_str());
@@ -322,11 +321,11 @@ CZoomEffect::CZoomEffect(const TiXmlElement *node, const CRect &rect) : CAnimEff
       m_autoCenter = true;
     else
     {
-      vector<CStdString> commaSeparated;
-      StringUtils::SplitString(centerPos, ",", commaSeparated);
+      vector<string> commaSeparated = StringUtils::Split(centerPos, ",");
       if (commaSeparated.size() > 1)
         m_center.y = (float)atof(commaSeparated[1].c_str());
-      m_center.x = (float)atof(commaSeparated[0].c_str());
+      if (!commaSeparated.empty())
+        m_center.x = (float)atof(commaSeparated[0].c_str());
     }
   }
   else
@@ -360,7 +359,6 @@ CAnimation::CAnimation()
 {
   m_type = ANIM_TYPE_NONE;
   m_reversible = true;
-  m_condition = 0;
   m_repeatAnim = ANIM_REPEAT_NONE;
   m_currentState = ANIM_STATE_NONE;
   m_currentProcess = ANIM_PROCESS_NONE;
@@ -389,7 +387,7 @@ CAnimation &CAnimation::operator =(const CAnimation &src)
   if (this == &src) return *this; // same
   m_type = src.m_type;
   m_reversible = src.m_reversible;
-  m_condition = src.m_condition; // TODO: register/unregister
+  m_condition = src.m_condition;
   m_repeatAnim = src.m_repeatAnim;
   m_lastCondition = src.m_lastCondition;
   m_queuedProcess = src.m_queuedProcess;
@@ -575,18 +573,22 @@ CAnimation CAnimation::CreateFader(float start, float end, unsigned int delay, u
 {
   CAnimation anim;
   anim.m_type = type;
-  anim.AddEffect(new CFadeEffect(start, end, delay, length));
+  anim.m_delay = delay;
+  anim.m_length = length;
+  anim.m_effects.push_back(new CFadeEffect(start, end, delay, length));
   return anim;
 }
 
 bool CAnimation::CheckCondition()
 {
-  return !m_condition || g_infoManager.GetBoolValue(m_condition);
+  return !m_condition || m_condition->Get();
 }
 
 void CAnimation::UpdateCondition(const CGUIListItem *item)
 {
-  bool condition = g_infoManager.GetBoolValue(m_condition, item);
+  if (!m_condition)
+    return;
+  bool condition = m_condition->Get(item);
   if (condition && !m_lastCondition)
     QueueAnimation(ANIM_PROCESS_NORMAL);
   else if (!condition && m_lastCondition)
@@ -601,7 +603,7 @@ void CAnimation::UpdateCondition(const CGUIListItem *item)
 
 void CAnimation::SetInitialCondition()
 {
-  m_lastCondition = g_infoManager.GetBoolValue(m_condition);
+  m_lastCondition = m_condition ? m_condition->Get() : false;
   if (m_lastCondition)
     ApplyAnimation();
   else
@@ -626,9 +628,9 @@ void CAnimation::Create(const TiXmlElement *node, const CRect &rect, int context
   CStdString type = node->FirstChild()->Value();
   m_type = ANIM_TYPE_CONDITIONAL;
   if (effect) // new layout
-    type = node->Attribute("type");
+    type = XMLUtils::GetAttribute(node, "type");
 
-  if (type.Left(7).Equals("visible")) m_type = ANIM_TYPE_VISIBLE;
+  if (StringUtils::StartsWithNoCase(type, "visible")) m_type = ANIM_TYPE_VISIBLE;
   else if (type.Equals("hidden")) m_type = ANIM_TYPE_HIDDEN;
   else if (type.Equals("focus"))  m_type = ANIM_TYPE_FOCUS;
   else if (type.Equals("unfocus"))  m_type = ANIM_TYPE_UNFOCUS;
@@ -652,11 +654,10 @@ void CAnimation::Create(const TiXmlElement *node, const CRect &rect, int context
       m_repeatAnim = ANIM_REPEAT_LOOP;
   }
 
-  m_delay = 0xffffffff;
   if (!effect)
   { // old layout:
     // <animation effect="fade" start="0" end="100" delay="10" time="2000" condition="blahdiblah" reversible="false">focus</animation>
-    CStdString type = node->Attribute("effect");
+    CStdString type = XMLUtils::GetAttribute(node, "effect");
     AddEffect(type, node, rect);
   }
   while (effect)
@@ -665,10 +666,19 @@ void CAnimation::Create(const TiXmlElement *node, const CRect &rect, int context
     //   <effect type="fade" start="0" end="100" delay="10" time="2000" />
     //   ...
     // </animation>
-    CStdString type = effect->Attribute("type");
+    CStdString type = XMLUtils::GetAttribute(effect, "type");
     AddEffect(type, effect, rect);
     effect = effect->NextSiblingElement("effect");
   }
+  // compute the minimum delay and maximum length
+  m_delay = 0xffffffff;
+  unsigned int total = 0;
+  for (vector<CAnimEffect*>::const_iterator i = m_effects.begin(); i != m_effects.end(); ++i)
+  {
+    m_delay = min(m_delay, (*i)->GetDelay());
+    total   = max(total, (*i)->GetLength());
+  }
+  m_length = total - m_delay;
 }
 
 void CAnimation::AddEffect(const CStdString &type, const TiXmlElement *node, const CRect &rect)
@@ -688,18 +698,7 @@ void CAnimation::AddEffect(const CStdString &type, const TiXmlElement *node, con
     effect = new CZoomEffect(node, rect);
 
   if (effect)
-    AddEffect(effect);
-}
-
-void CAnimation::AddEffect(CAnimEffect *effect)
-{
-  m_effects.push_back(effect);
-  // our delay is the minimum of all the effect delays
-  if (effect->GetDelay() < m_delay)
-    m_delay = effect->GetDelay();
-  // our length is the maximum of all the effect lengths
-  if (effect->GetLength() > m_delay + m_length)
-    m_length = effect->GetLength() - m_delay;
+    m_effects.push_back(effect);
 }
 
 CScroller::CScroller(unsigned int duration /* = 200 */, boost::shared_ptr<Tweener> tweener /* = NULL */)

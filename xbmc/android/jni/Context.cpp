@@ -35,7 +35,9 @@
 #include "PowerManager.h"
 #include "Cursor.h"
 #include "ConnectivityManager.h"
+#include "AudioFormat.h"
 #include "AudioManager.h"
+#include "AudioTrack.h"
 #include "Surface.h"
 #include "MediaCodec.h"
 #include "MediaCodecInfo.h"
@@ -63,7 +65,6 @@ CJNIContext::CJNIContext(const ANativeActivity *nativeActivity)
 CJNIContext::~CJNIContext()
 {
   m_appInstance = NULL;
-  m_context.release();
   xbmc_jni_on_unload();
 }
 
@@ -77,7 +78,9 @@ void CJNIContext::PopulateStaticFields()
   CJNICursor::PopulateStaticFields();
   CJNIContentResolver::PopulateStaticFields();
   CJNIConnectivityManager::PopulateStaticFields();
+  CJNIAudioFormat::PopulateStaticFields();
   CJNIAudioManager::PopulateStaticFields();
+  CJNIAudioTrack::PopulateStaticFields();
   CJNISurface::PopulateStaticFields();
   CJNIMediaCodec::PopulateStaticFields();
   CJNIMediaCodecInfoCodecProfileLevel::PopulateStaticFields();

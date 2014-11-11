@@ -10,13 +10,13 @@ TARBALLS=${TARBALLS:-"/opt/xbmc-tarballs"}
 #$XBMC_PLATFORM_DIR matches the platform subdirs!
 case $XBMC_PLATFORM_DIR in
   atv2)
-    DEFAULT_SDK_VERSION=4.3
+    DEFAULT_SDK_VERSION=4.2
     DEFAULT_XBMC_DEPENDS_ROOT=$WORKSPACE/tools/depends/xbmc-depends
     DEFAULT_CONFIGURATION="Debug"
     ;;
 
   ios)
-    DEFAULT_SDK_VERSION=4.3
+    DEFAULT_SDK_VERSION=4.2
     DEFAULT_XBMC_DEPENDS_ROOT=$WORKSPACE/tools/depends/xbmc-depends
     DEFAULT_CONFIGURATION="Debug"
     ;;
@@ -42,6 +42,13 @@ case $XBMC_PLATFORM_DIR in
   linux*)
     DEFAULT_XBMC_DEPENDS_ROOT=$WORKSPACE/tools/depends/xbmc-depends
     DEFAULT_CONFIGURATION="Debug"
+  ;;
+
+  rbpi)
+    JENKINS_RBPI_DEVENV=${JENKINS_RBPI_DEVENV:-"/home/jenkins/rbpi-dev"}
+    DEFAULT_XBMC_DEPENDS_ROOT=$WORKSPACE/tools/depends/xbmc-depends
+    DEFAULT_CONFIGURATION="Debug"
+  ;;
 esac
 
 if [ "$SDK_VERSION" == "Default" ]
@@ -67,14 +74,14 @@ fi
 
 #helper functions
 
-#hash a dir based on the git revision, SDK_PATH, NDK_PATH, SDK_VERSION, TOOLCHAIN and XBMC_DEPENDS_ROOT
+#hash a dir based on the git revision, SDK_PATH, NDK_PATH, SDK_VERSION, TOOLCHAIN TOOLCHAIN_X86 (for droidx86) and XBMC_DEPENDS_ROOT
 function getBuildHash ()
 {
   local checkPath
   checkPath="$1"
   local hashStr
   hashStr="$(git rev-list HEAD --max-count=1  -- $checkPath)"
-  hashStr="$hashStr $SDK_PATH $NDK_PATH $SDK_VERSION $TOOLCHAIN $XBMC_DEPENDS_ROOT"
+  hashStr="$hashStr $SDK_PATH $NDK_PATH $SDK_VERSION $TOOLCHAIN $TOOLCHAIN_X86 $XBMC_DEPENDS_ROOT"
   echo $hashStr
 }
 
@@ -132,7 +139,8 @@ function getBranchName ()
   else
     #if we are in detached head state
     #fetch the first non-pullrequest branch we can find with HEAD
-    git branch -r --contains HEAD | sed "/origin\/pr\//d" | head -n1 | awk '{gsub(".*/","");print $1}'
+    #also only grep in remotes that match current GITHUB_REPO
+    git branch -r --contains HEAD | sed "/origin\/pr\//d" | grep $GITHUB_REPO | head -n1 | awk '{gsub(".*/","");print $1}'
   fi
 }
 

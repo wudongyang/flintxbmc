@@ -25,6 +25,7 @@
 
 #include "utils/StdString.h"
 
+class NPT_LogHandler;
 class PLT_UPnP;
 class PLT_SyncMediaBrowser;
 class PLT_MediaController;
@@ -74,6 +75,9 @@ public:
     static bool SaveFileState(const CFileItem& item,
                               const CBookmark& bookmark,
                               const bool updatePlayCount);
+
+    static void RegisterUserdata(void* ptr);
+    static void UnregisterUserdata(void* ptr);
 private:
     // methods
     CUPnPRenderer* CreateRenderer(int port = 0);
@@ -86,6 +90,7 @@ public:
 private:
     CStdString                  m_IP;
     PLT_UPnP*                   m_UPnP;
+    NPT_LogHandler*             m_LogHandler;
     CDeviceHostReferenceHolder* m_ServerHolder;
     CRendererReferenceHolder*   m_RendererHolder;
     CCtrlPointReferenceHolder*  m_CtrlPointHolder;

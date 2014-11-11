@@ -24,6 +24,7 @@
 #include "URL.h"
 #include "filesystem/MultiPathDirectory.h"
 #include "utils/URIUtils.h"
+#include "utils/StringUtils.h"
 
 using namespace std;
 using namespace XFILE;
@@ -33,12 +34,12 @@ bool CMediaSource::IsWritable() const
   return CUtil::SupportsWriteFileOperations(strPath);
 }
 
-void CMediaSource::FromNameAndPaths(const CStdString &category, const CStdString &name, const vector<CStdString> &paths)
+void CMediaSource::FromNameAndPaths(const CStdString &category, const CStdString &name, const vector<string> &paths)
 {
   vecPaths = paths;
   if (paths.size() == 0)
   { // no paths - return
-    strPath.Empty();
+    strPath.clear();
   }
   else if (paths.size() == 1)
   { // only one valid path? make it the strPath
@@ -58,7 +59,7 @@ void CMediaSource::FromNameAndPaths(const CStdString &category, const CStdString
 
   if (URIUtils::IsMultiPath(strPath))
     m_iDriveType = SOURCE_TYPE_VPATH;
-  else if (strPath.Left(4).Equals("udf:"))
+  else if (StringUtils::StartsWithNoCase(strPath, "udf:"))
   {
     m_iDriveType = SOURCE_TYPE_VIRTUAL_DVD;
     strPath = "D:\\";

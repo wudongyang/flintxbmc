@@ -76,6 +76,7 @@
 #include <dlfcn.h>
 #endif
 #include "utils/Environment.h"
+#include "utils/StringUtils.h"
 
 using namespace std;
 using namespace XFILE;
@@ -105,8 +106,6 @@ extern "C" char **dll__environ;
 char **dll__environ = dll__environ_imp;
 
 CCriticalSection dll_cs_environ;
-
-#define dll_environ    (*dll___p__environ())   /* pointer to environment table */
 
 extern "C" void __stdcall init_emu_environ()
 {
@@ -138,7 +137,7 @@ extern "C" void __stdcall init_emu_environ()
 #endif
 
   // check if we are running as real xbmc.app or just binary
-  if (!CUtil::GetFrameworksPath(true).IsEmpty())
+  if (!CUtil::GetFrameworksPath(true).empty())
   {
     // using external python, it's build looking for xxx/lib/python2.6
     // so point it to frameworks which is where python2.6 is located
@@ -200,16 +199,17 @@ extern "C" void __stdcall update_emu_environ()
       && CSettings::Get().GetInt("network.httpproxyport") > 0
       && CSettings::Get().GetInt("network.httpproxytype") == 0)
   {
-    CStdString strProxy;
+    std::string strProxy;
     if (!CSettings::Get().GetString("network.httpproxyusername").empty() &&
         !CSettings::Get().GetString("network.httpproxypassword").empty())
     {
-      strProxy.Format("%s:%s@", CSettings::Get().GetString("network.httpproxyusername").c_str(),
-                                CSettings::Get().GetString("network.httpproxypassword").c_str());
+      strProxy = StringUtils::Format("%s:%s@",
+                                     CSettings::Get().GetString("network.httpproxyusername").c_str(),
+                                     CSettings::Get().GetString("network.httpproxypassword").c_str());
     }
 
     strProxy += CSettings::Get().GetString("network.httpproxyserver");
-    strProxy.AppendFormat(":%d", CSettings::Get().GetInt("network.httpproxyport"));
+    strProxy += StringUtils::Format(":%d", CSettings::Get().GetInt("network.httpproxyport"));
 
     CEnvironment::setenv( "HTTP_PROXY", "http://" + strProxy, true );
     CEnvironment::setenv( "HTTPS_PROXY", "http://" + strProxy, true );
@@ -220,6 +220,15 @@ extern "C" void __stdcall update_emu_environ()
     // this works but leaves the variable
     dll_putenv( "HTTP_PROXY=" );
     dll_putenv( "HTTPS_PROXY=" );
+  }
+}
+
+extern "C" void __stdcall cleanup_emu_environ()
+{
+  for (int i = 0; i < EMU_MAX_ENVIRONMENT_ITEMS; i++)
+  {
+    free(dll__environ[i]);
+    dll__environ[i] = NULL;
   }
 }
 
@@ -240,7 +249,7 @@ static int convert_fmode(const char* mode)
 #ifdef TARGET_WINDOWS
 static void to_finddata64i32(_wfinddata64i32_t *wdata, _finddata64i32_t *data)
 {
-  CStdString strname;
+  std::string strname;
   g_charsetConverter.wToUTF8(wdata->name, strname);
   size_t size = sizeof(data->name) / sizeof(char);
   strncpy(data->name, strname.c_str(), size);
@@ -255,7 +264,7 @@ static void to_finddata64i32(_wfinddata64i32_t *wdata, _finddata64i32_t *data)
 
 static void to_wfinddata64i32(_finddata64i32_t *data, _wfinddata64i32_t *wdata)
 {
-  CStdStringW strwname;
+  std::wstring strwname;
   g_charsetConverter.utf8ToW(data->name, strwname, false);
   size_t size = sizeof(wdata->name) / sizeof(wchar_t);
   wcsncpy(wdata->name, strwname.c_str(), size);
@@ -295,7 +304,7 @@ extern "C"
     void* pBlock = malloc(size);
     if (!pBlock)
     {
-      CLog::Log(LOGSEVERE, "malloc %"PRIdS" bytes failed, crash imminent", size);
+      CLog::Log(LOGSEVERE, "malloc %" PRIdS" bytes failed, crash imminent", size);
     }
     return pBlock;
   }
@@ -310,7 +319,7 @@ extern "C"
     void* pBlock = calloc(num, size);
     if (!pBlock)
     {
-      CLog::Log(LOGSEVERE, "calloc %"PRIdS" bytes failed, crash imminent", size);
+      CLog::Log(LOGSEVERE, "calloc %" PRIdS" bytes failed, crash imminent", size);
     }
     return pBlock;
   }
@@ -320,7 +329,7 @@ extern "C"
     void* pBlock =  realloc(memblock, size);
     if (!pBlock)
     {
-      CLog::Log(LOGSEVERE, "realloc %"PRIdS" bytes failed, crash imminent", size);
+      CLog::Log(LOGSEVERE, "realloc %" PRIdS" bytes failed, crash imminent", size);
     }
     return pBlock;
   }
@@ -516,12 +525,12 @@ extern "C"
     bool bResult;
 
     // We need to validate the path here as some calls from ie. libdvdnav
-    // or the python DLLs have malformed slashes on Win32 & Xbox
+    // or the python DLLs have malformed slashes on Win32
     // (-> E:\test\VIDEO_TS/VIDEO_TS.BUP))
     if (bWrite)
       bResult = pFile->OpenForWrite(CUtil::ValidatePath(str), bOverwrite);
     else
-      bResult = pFile->Open(CUtil::ValidatePath(str));
+      bResult = pFile->Open(CUtil::ValidatePath(str), READ_TRUNCATED);
 
     if (bResult)
     {
@@ -806,7 +815,7 @@ extern "C"
 
       // Make sure the slashes are correct & translate the path
       struct _wfinddata64i32_t wdata;
-      CStdStringW strwfile;
+      std::wstring strwfile;
       g_charsetConverter.utf8ToW(CUtil::ValidatePath(CSpecialProtocol::TranslatePath(str)), strwfile, false);
       intptr_t ret = _wfindfirst64i32(strwfile.c_str(), &wdata);
       if (ret != -1)
@@ -814,30 +823,30 @@ extern "C"
       return ret;
     }
     // non-local files. handle through IDirectory-class - only supports '*.bah' or '*.*'
-    CStdString strURL(file);
-    CStdString strMask;
-    if (url.GetFileName().Find("*.*") != string::npos)
+    std::string strURL(file);
+    std::string strMask;
+    if (url.GetFileName().find("*.*") != string::npos)
     {
-      CStdString strReplaced = url.GetFileName();
-      strReplaced.Replace("*.*","");
+      std::string strReplaced = url.GetFileName();
+      StringUtils::Replace(strReplaced, "*.*","");
       url.SetFileName(strReplaced);
     }
-    else if (url.GetFileName().Find("*.") != string::npos)
+    else if (url.GetFileName().find("*.") != string::npos)
     {
       strMask = URIUtils::GetExtension(url.GetFileName());
-      url.SetFileName(url.GetFileName().Left(url.GetFileName().Find("*.")));
+      url.SetFileName(url.GetFileName().substr(0, url.GetFileName().find("*.")));
     }
-    else if (url.GetFileName().Find("*") != string::npos)
+    else if (url.GetFileName().find("*") != string::npos)
     {
-      CStdString strReplaced = url.GetFileName();
-      strReplaced.Replace("*","");
+      std::string strReplaced = url.GetFileName();
+      StringUtils::Replace(strReplaced, "*","");
       url.SetFileName(strReplaced);
     }
     int iDirSlot=0; // locate next free directory
     while ((vecDirsOpen[iDirSlot].curr_index != -1) && (iDirSlot<MAX_OPEN_DIRS)) iDirSlot++;
     if (iDirSlot >= MAX_OPEN_DIRS)
       return -1; // no free slots
-    if (url.GetProtocol().Equals("filereader"))
+    if (url.IsProtocol("filereader"))
     {
       CURL url2(url.GetFileName());
       url = url2;
@@ -962,7 +971,7 @@ extern "C"
       return NULL; // no free slots
     }
 
-    if (url.GetProtocol().Equals("filereader"))
+    if (url.IsProtocol("filereader"))
     {
       CURL url2(url.GetFileName());
       url = url2;
@@ -1265,8 +1274,6 @@ extern "C"
       }
     }
 
-    OutputDebugString(szLine);
-    OutputDebugString("\n");
     CLog::Log(LOGERROR, "%s emulated function failed",  __FUNCTION__);
     return EOF;
   }
@@ -1481,8 +1488,7 @@ extern "C"
 
   int dllvprintf(const char *format, va_list va)
   {
-    CStdString buffer;
-    buffer.FormatV(format, va);
+    std::string buffer = StringUtils::FormatV(format, va);
     CLog::Log(LOGDEBUG, "  msg: %s", buffer.c_str());
     return buffer.length();
   }
@@ -1543,8 +1549,6 @@ extern "C"
       }
     }
 
-    OutputDebugString(tmp);
-    OutputDebugString("\n");
     CLog::Log(LOGERROR, "%s emulated function failed",  __FUNCTION__);
     return strlen(tmp);
   }
@@ -1910,9 +1914,9 @@ extern "C"
     if (!dir) return -1;
 
     // Make sure the slashes are correct & translate the path
-    CStdString strPath = CUtil::ValidatePath(CSpecialProtocol::TranslatePath(dir));
+    std::string strPath = CUtil::ValidatePath(CSpecialProtocol::TranslatePath(dir));
 #ifndef TARGET_POSIX
-    CStdStringW strWPath;
+    std::wstring strWPath;
     g_charsetConverter.utf8ToW(strPath, strWPath, false);
     return _wmkdir(strWPath.c_str());
 #else

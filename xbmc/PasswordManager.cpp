@@ -66,9 +66,8 @@ bool CPasswordManager::PromptToAuthenticateURL(CURL &url)
 {
   CSingleLock lock(m_critSection);
 
-  CStdString passcode;
-  CStdString username = url.GetUserName();
-  CStdString path = GetLookupPath(url);
+  std::string passcode;
+  std::string username = url.GetUserName();
 
   bool saveDetails = false;
   if (!CGUIDialogLockSettings::ShowAndGetUserAndPassword(username, passcode, url.GetWithoutUserDetails(), &saveDetails))
@@ -85,7 +84,7 @@ bool CPasswordManager::PromptToAuthenticateURL(CURL &url)
 void CPasswordManager::SaveAuthenticatedURL(const CURL &url, bool saveToProfile)
 {
   // don't store/save authenticated url if it doesn't contain username
-  if (url.GetUserName().IsEmpty())
+  if (url.GetUserName().empty())
     return;
 
   CSingleLock lock(m_critSection);
@@ -149,7 +148,7 @@ void CPasswordManager::Load()
 
 void CPasswordManager::Save() const
 {
-  if (!m_permanentCache.size())
+  if (m_permanentCache.empty())
     return;
 
   CXBMCTinyXML doc;

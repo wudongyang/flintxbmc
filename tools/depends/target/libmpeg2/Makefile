@@ -28,6 +28,18 @@ ifeq ($(OS),ios)
 	cd $(PLATFORM); patch -p0 < ../02-neon.patch
 	cd $(PLATFORM); patch -p1 < ../03-config-fix.patch
 endif
+	cd $(PLATFORM); patch -p1 < ../04-clang-fix.patch
+	cd $(PLATFORM); patch -p0 < ../05-upstream-motion_comp_arm_s.S-is-not-PIC-enough.patch
+ifeq ($(OS),ios)
+	case $(XCODE_VERSION) in \
+	4.* | 4.*.*) \
+	;;\
+	*) \
+	cd $(PLATFORM); patch -p0 < ../06-motion_comp_arm_s.S-even_more_pic.patch \
+	;;\
+	esac
+endif
+	cd $(PLATFORM); $(AUTORECONF) -vif
 	cd $(PLATFORM); $(CONFIGURE)
 
 $(LIBDYLIB): $(PLATFORM)

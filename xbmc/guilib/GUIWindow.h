@@ -63,11 +63,10 @@ public:
   COrigin()
   {
     x = y = 0;
-    condition = 0;
   };
   float x;
   float y;
-  unsigned int condition;
+  INFO::InfoPtr condition;
 };
 
 /*!
@@ -220,7 +219,7 @@ protected:
   virtual void RestoreControlStates();
 
   // methods for updating controls and sending messages
-  void OnEditChanged(int id, CStdString &text);
+  void OnEditChanged(int id, std::string &text);
   bool SendMessage(int message, int id, int param1 = 0, int param2 = 0);
 
   typedef GUIEvent<CGUIMessage&> CLICK_EVENT;
@@ -231,11 +230,7 @@ protected:
   typedef std::map<int, SELECTED_EVENT> MAPCONTROLSELECTEDEVENTS;
   MAPCONTROLSELECTEDEVENTS m_mapSelectedEvents;
 
-  void LoadControl(TiXmlElement* pControl, CGUIControlGroup *pGroup);
-
-//#ifdef PRE_SKIN_VERSION_9_10_COMPATIBILITY
-  void ChangeButtonToEdit(int id, bool singleLabel = false);
-//#endif
+  void LoadControl(TiXmlElement* pControl, CGUIControlGroup *pGroup, const CRect &rect);
 
   std::vector<int> m_idRange;
   OVERLAY_STATE m_overlayState;
@@ -267,10 +262,7 @@ protected:
   bool m_animationsEnabled;
   struct icompare
   {
-    bool operator()(const CStdString &s1, const CStdString &s2) const
-    {
-      return s1.CompareNoCase(s2) < 0;
-    }
+    bool operator()(const CStdString &s1, const CStdString &s2) const;
   };
 
   CGUIAction m_loadActions;
@@ -284,7 +276,7 @@ protected:
 
 private:
   std::map<CStdString, CVariant, icompare> m_mapProperties;
-  std::map<int, bool> m_xmlIncludeConditions; ///< \brief used to store conditions used to resolve includes for this window
+  std::map<INFO::InfoPtr, bool> m_xmlIncludeConditions; ///< \brief used to store conditions used to resolve includes for this window
 };
 
 #endif

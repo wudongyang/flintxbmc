@@ -22,9 +22,10 @@
 #include "system.h"
 #include "bus/PeripheralBus.h"
 #include "devices/Peripheral.h"
-#include "settings/ISettingCallback.h"
+#include "settings/lib/ISettingCallback.h"
 #include "threads/CriticalSection.h"
 #include "threads/Thread.h"
+#include "utils/Observer.h"
 
 class CFileItemList;
 class CSetting;
@@ -37,7 +38,8 @@ namespace PERIPHERALS
 {
   #define g_peripherals CPeripherals::Get()
 
-  class CPeripherals : public ISettingCallback
+  class CPeripherals :  public ISettingCallback,
+                        public Observable
   {
   public:
     static CPeripherals &Get(void);
@@ -212,7 +214,7 @@ namespace PERIPHERALS
     CPeripherals(void);
     bool LoadMappings(void);
     bool GetMappingForDevice(const CPeripheralBus &bus, PeripheralScanResult& result) const;
-    static void GetSettingsFromMappingsFile(TiXmlElement *xmlNode, std::map<CStdString, CSetting *> &m_settings);
+    static void GetSettingsFromMappingsFile(TiXmlElement *xmlNode, std::map<CStdString, PeripheralDeviceSetting> &m_settings);
 
     bool                                 m_bInitialised;
     bool                                 m_bIsStarted;

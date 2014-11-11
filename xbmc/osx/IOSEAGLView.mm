@@ -35,6 +35,8 @@
 #include "utils/log.h"
 #include "utils/TimeUtils.h"
 #include "Util.h"
+#include "XbmcContext.h"
+#include "WindowingFactory.h"
 #undef BOOL
 
 #import <QuartzCore/QuartzCore.h>
@@ -42,7 +44,11 @@
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
 #import "IOSEAGLView.h"
-#import "XBMCController.h"
+#if defined(TARGET_DARWIN_IOS_ATV2)
+#import "xbmc/osx/atv2/KodiController.h"
+#elif defined(TARGET_DARWIN_IOS)
+#import "xbmc/osx/ios/XBMCController.h"
+#endif
 #import "IOSScreenManager.h"
 #import "AutoPool.h"
 #import "DarwinUtils.h"
@@ -59,6 +65,7 @@
 @implementation IOSEAGLView
 @synthesize animating;
 @synthesize xbmcAlive;
+@synthesize readyToRun;
 @synthesize pause;
 @synthesize currentScreen;
 @synthesize framebufferResizeRequested;
@@ -118,9 +125,16 @@
     //if no retina display scale detected yet -
     //ensure retina resolution on supported devices mainScreen
     //even on older iOS SDKs
-    if (ret == 1.0 && screen == [UIScreen mainScreen] && DarwinHasRetina())
+    double screenScale = 1.0;
+    if (ret == 1.0 && screen == [UIScreen mainScreen] && CDarwinUtils::DeviceHasRetina(screenScale))
     {
-      ret = 2.0;//all retina devices have a scale factor of 2.0
+      ret = screenScale;//set scale factor from our static list in case older SDKs report 1.0
+    }
+
+    // fix for ip6 plus which seems to report 2.0 when not compiled with ios8 sdk
+    if (CDarwinUtils::DeviceHasRetina(screenScale) && screenScale == 3.0)
+    {
+      ret = screenScale;
     }
   }
   return ret;
@@ -314,14 +328,14 @@
 {
   PRINT_SIGNATURE();
   pause = TRUE;
-  g_application.SetInBackground(true);
+  g_application.SetRenderGUI(false);
 }
 //--------------------------------------------------------------
 - (void) resumeAnimation
 {
   PRINT_SIGNATURE();
   pause = FALSE;
-  g_application.SetInBackground(false);
+  g_application.SetRenderGUI(true);
 }
 //--------------------------------------------------------------
 - (void) startAnimation
@@ -330,7 +344,6 @@
 	if (!animating && context)
 	{
 		animating = TRUE;
-    CWinEventsIOS::Init();
 
     // kick off an animation thread
     animationThreadLock = [[NSConditionLock alloc] initWithCondition: FALSE];
@@ -358,14 +371,15 @@
     // wait for animation thread to die
     if ([animationThread isFinished] == NO)
       [animationThreadLock lockWhenCondition:TRUE];
-    CWinEventsIOS::DeInit();
 	}
 }
 //--------------------------------------------------------------
 - (void) runAnimation:(id) arg
 {
   CCocoaAutoPool outerpool;
-  bool readyToRun = true;
+  // set up some xbmc specific relationships
+  XBMC::Context context;
+  readyToRun = true;
 
   // signal we are alive
   NSConditionLock* myLock = arg;
@@ -444,7 +458,7 @@
   if (animationThread && [animationThread isExecuting] == YES)
   {
     if (g_VideoReferenceClock.IsRunning())
-      g_VideoReferenceClock.VblankHandler(CurrentHostCounter(), displayFPS);
+      g_Windowing.VblankHandler(CurrentHostCounter(), displayFPS);
   }
   [pool release];
 }

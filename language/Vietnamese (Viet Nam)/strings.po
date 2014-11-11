@@ -1,11 +1,11 @@
-# XBMC Media Center language file
+# Kodi Media Center language file
 msgid ""
 msgstr ""
 "Project-Id-Version: XBMC Main\n"
 "Report-Msgid-Bugs-To: http://trac.xbmc.org/\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: XBMC Translation Team\n"
+"Last-Translator: Kodi Translation Team\n"
 "Language-Team: Vietnamese (Viet Nam) (http://www.transifex.com/projects/p/xbmc-main/language/vi_VN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -37,10 +37,6 @@ msgctxt "#5"
 msgid "Settings"
 msgstr "Cài đặt"
 
-msgctxt "#6"
-msgid "XBMC SVN"
-msgstr "XBMC SVN"
-
 msgctxt "#7"
 msgid "File manager"
 msgstr "Quản lý tập tin"
@@ -48,10 +44,6 @@ msgstr "Quản lý tập tin"
 msgctxt "#8"
 msgid "Weather"
 msgstr "Thời tiết"
-
-msgctxt "#9"
-msgid "xbmc media center"
-msgstr "trung tâm giải trí xbmc"
 
 msgctxt "#11"
 msgid "Monday"
@@ -135,7 +127,7 @@ msgstr "Hai"
 
 msgctxt "#42"
 msgid "Tue"
-msgstr "Ba"
+msgstr "Tháng ba"
 
 msgctxt "#43"
 msgid "Wed"
@@ -263,7 +255,7 @@ msgstr "Tạo hình đại diện"
 
 msgctxt "#111"
 msgid "Shortcuts"
-msgstr "Đường dẫn"
+msgstr "Lối tắt"
 
 msgctxt "#112"
 msgid "Paused"
@@ -304,10 +296,6 @@ msgstr "Xác nhận sao chép tệp"
 msgctxt "#121"
 msgid "Confirm file move"
 msgstr "Xác nhận di chuyển tệp"
-
-msgctxt "#122"
-msgid "Confirm file delete?"
-msgstr "Xác nhận xóa tệp?"
 
 msgctxt "#123"
 msgid "Copy these files?"
@@ -443,7 +431,7 @@ msgstr "Ổ đĩa"
 
 msgctxt "#156"
 msgid "Free"
-msgstr "Miễn phí"
+msgstr "Sáu"
 
 msgctxt "#157"
 msgid "Video"
@@ -459,7 +447,7 @@ msgstr "Không có đường dẫn"
 
 msgctxt "#160"
 msgid "Free"
-msgstr "Rỗng"
+msgstr "Sáu"
 
 msgctxt "#161"
 msgid "Unavailable"
@@ -597,6 +585,10 @@ msgctxt "#205"
 msgid "Votes"
 msgstr "Phiếu"
 
+msgctxt "#206"
+msgid "Cast"
+msgstr "Diễn viên"
+
 msgctxt "#207"
 msgid "Plot"
 msgstr "Tình tiết"
@@ -677,10 +669,6 @@ msgctxt "#249"
 msgid "Music"
 msgstr "Âm nhạc"
 
-msgctxt "#250"
-msgid "Visualization"
-msgstr "Ảo hóa"
-
 msgctxt "#253"
 msgid "Number of channels"
 msgstr "Số kênh"
@@ -712,10 +700,6 @@ msgstr "Đang đợi để bắt đầu"
 msgctxt "#262"
 msgid "Scripts output"
 msgstr "Đầu ra mã"
-
-msgctxt "#263"
-msgid "Allow control of XBMC via HTTP"
-msgstr "Cho phép điều khiển XBMC qua HTTP"
 
 msgctxt "#264"
 msgid "Record"
@@ -792,6 +776,10 @@ msgstr "Bộ sưu tập thêm vào gần đây"
 msgctxt "#365"
 msgid "Sort by: Name"
 msgstr "Sắp xếp theo: Tên"
+
+msgctxt "#377"
+msgid "Light"
+msgstr "Ánh sáng"
 
 msgctxt "#386"
 msgid "Clear"
@@ -873,9 +861,17 @@ msgctxt "#1213"
 msgid "Pictures"
 msgstr "Hình ảnh"
 
+msgctxt "#1390"
+msgid "Settings"
+msgstr "Cài đặt"
+
 msgctxt "#1403"
 msgid "Sun"
 msgstr "CN"
+
+msgctxt "#1443"
+msgid "of"
+msgstr "của"
 
 msgctxt "#10001"
 msgid "Programs"
@@ -909,6 +905,10 @@ msgctxt "#10025"
 msgid "Videos"
 msgstr "Video"
 
+msgctxt "#10038"
+msgid "Advanced"
+msgstr "Nâng ca"
+
 msgctxt "#10505"
 msgid "Top 100 albums"
 msgstr "100 bộ sưu tập hay nhất"
@@ -925,9 +925,17 @@ msgctxt "#10523"
 msgid "Album info"
 msgstr "Thông tin bộ sưu tập"
 
+msgctxt "#12321"
+msgid "Ok"
+msgstr "Đồng ý "
+
 msgctxt "#12600"
 msgid "Weather"
 msgstr "Thời tiết"
+
+msgctxt "#13000"
+msgid "System"
+msgstr "Hệ thống"
 
 msgctxt "#13277"
 msgid "Storage"
@@ -937,13 +945,25 @@ msgctxt "#13280"
 msgid "Video"
 msgstr "Video"
 
+msgctxt "#13284"
+msgid "CPU speed:"
+msgstr "Chíp xử lý trung tâm:"
+
+msgctxt "#13303"
+msgid "Fonts"
+msgstr "Phông chữ"
+
+msgctxt "#13350"
+msgid "Current playlist"
+msgstr "Danh sách hiện tại"
+
 msgctxt "#13351"
 msgid "Album information"
 msgstr "Thông tin bộ sưu tập"
 
 msgctxt "#13398"
 msgid "Shortcuts"
-msgstr "Đường dẫn"
+msgstr "Lối tắt"
 
 msgctxt "#13400"
 msgid "Crossfade between songs on the same album"
@@ -952,6 +972,14 @@ msgstr "Sự tăng giảm âm thanh giữa các bài hát trong cùng một b�
 msgctxt "#13412"
 msgid "Play from here"
 msgstr "Chơi từ đây"
+
+msgctxt "#14036"
+msgid "Services"
+msgstr "Dịch vụ"
+
+msgctxt "#14096"
+msgid "Rip"
+msgstr "Năm"
 
 msgctxt "#14098"
 msgid "Play"
@@ -964,6 +992,10 @@ msgstr "Mật khẩu"
 msgctxt "#15102"
 msgid "* All albums"
 msgstr "* Tất cả bộ sưu tập"
+
+msgctxt "#15109"
+msgid "Skin default"
+msgstr "Giao diện mặc định"
 
 msgctxt "#16000"
 msgid "General"
@@ -981,6 +1013,10 @@ msgctxt "#16026"
 msgid "Playback failed"
 msgstr "Phát lại bị lỗi"
 
+msgctxt "#19003"
+msgid "Find similar"
+msgstr "Tìm giống như"
+
 msgctxt "#19019"
 msgid "Channels"
 msgstr "Kênh"
@@ -989,9 +1025,37 @@ msgctxt "#19031"
 msgid "Next"
 msgstr "Tiếp theo"
 
+msgctxt "#19098"
+msgid "Warning"
+msgstr "Cảnh báo"
+
+msgctxt "#19140"
+msgid "Search..."
+msgstr "Tìm kiếm..."
+
 msgctxt "#19146"
 msgid "Groups"
 msgstr "Nhóm"
+
+msgctxt "#19150"
+msgid "Tu"
+msgstr "Tháng ba"
+
+msgctxt "#19152"
+msgid "Th"
+msgstr "Bắc"
+
+msgctxt "#19154"
+msgid "Sa"
+msgstr "Bảy"
+
+msgctxt "#19155"
+msgid "Su"
+msgstr "CN"
+
+msgctxt "#19190"
+msgid "Background"
+msgstr "Hình nền"
 
 msgctxt "#20059"
 msgid "Query info for all albums"
@@ -1009,6 +1073,14 @@ msgctxt "#20159"
 msgid "Video information"
 msgstr "Thông tin video"
 
+msgctxt "#20163"
+msgid "of"
+msgstr "của"
+
+msgctxt "#20177"
+msgid "Done"
+msgstr "Đồng ý "
+
 msgctxt "#20193"
 msgid "Default service for album information"
 msgstr "Sự hỗ trợ mặc định cho thông tin bộ sưu tập"
@@ -1023,15 +1095,23 @@ msgstr "Đi đến bộ sưu tập phù hợp với nghệ sĩ"
 
 msgctxt "#20397"
 msgid "Go to album"
-msgstr "Đi đến bộ sưu tập"
+msgstr "Bộ sưu tập"
 
 msgctxt "#20399"
 msgid "Go to music videos from album"
 msgstr "Đi đến video âm nhạc từ bộ sưu tập"
 
+msgctxt "#20413"
+msgid "Get fanart"
+msgstr "Fanart"
+
 msgctxt "#20445"
 msgid "Fanart"
 msgstr "Fanart"
+
+msgctxt "#21373"
+msgid "Video output"
+msgstr "Video"
 
 msgctxt "#21417"
 msgid "Settings"
@@ -1040,6 +1120,14 @@ msgstr "Cài đặt"
 msgctxt "#21805"
 msgid "Resolution"
 msgstr "Độ phân giải"
+
+msgctxt "#21826"
+msgid "Aperture"
+msgstr "Đang mở"
+
+msgctxt "#21870"
+msgid "Source"
+msgstr "Phông chữ"
 
 msgctxt "#21884"
 msgid "Query info for all artists"
@@ -1053,21 +1141,37 @@ msgctxt "#22030"
 msgid "Font"
 msgstr "Phông chữ"
 
-msgctxt "#24010"
-msgid "Visualization"
-msgstr "Ảo hóa"
-
 msgctxt "#24012"
 msgid "Subtitles"
 msgstr "Phụ đề"
+
+msgctxt "#24013"
+msgid "Lyrics"
+msgstr "Lời nhạc"
 
 msgctxt "#24016"
 msgid "Album information"
 msgstr "Thông tin bộ sưu tập"
 
+msgctxt "#24018"
+msgid "Services"
+msgstr "Dịch vụ"
+
 msgctxt "#24027"
 msgid "Weather"
 msgstr "Thời tiết"
+
+msgctxt "#33030"
+msgid "Outlook"
+msgstr "Toàn cảnh"
+
+msgctxt "#33037"
+msgid "Weekend"
+msgstr "Cuối tuần"
+
+msgctxt "#33063"
+msgid "Options"
+msgstr "Tùy chọn"
 
 msgctxt "#33068"
 msgid "Background"
@@ -1077,6 +1181,10 @@ msgctxt "#33081"
 msgid "This file is stacked, select the part you want to play from."
 msgstr "Tập tin này bị lỗi, hãy chọn một phần khác để phát."
 
+msgctxt "#34100"
+msgid "Number of channels"
+msgstr "Số kênh"
+
 msgctxt "#35000"
 msgid "Peripherals"
 msgstr "Peripherals"
@@ -1084,3 +1192,31 @@ msgstr "Peripherals"
 msgctxt "#35500"
 msgid "Location"
 msgstr "Địa điểm"
+
+msgctxt "#36428"
+msgid "Record"
+msgstr "Ghi lại"
+
+msgctxt "#36901"
+msgid "movies"
+msgstr "phim"
+
+msgctxt "#36912"
+msgid "video"
+msgstr "Video"
+
+msgctxt "#36913"
+msgid "videos"
+msgstr "Video"
+
+msgctxt "#36918"
+msgid "album"
+msgstr "Bộ sưu tập"
+
+msgctxt "#36920"
+msgid "song"
+msgstr "Bài hát"
+
+msgctxt "#36921"
+msgid "songs"
+msgstr "Bài hát"

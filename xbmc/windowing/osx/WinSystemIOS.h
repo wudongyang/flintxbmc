@@ -27,6 +27,10 @@
 #include "windowing/WinSystem.h"
 #include "rendering/gles/RenderSystemGLES.h"
 #include "utils/GlobalsHandling.h"
+#include "threads/CriticalSection.h"
+
+class IDispResource;
+class CVideoSyncCocoa;
 
 class CWinSystemIOS : public CWinSystemBase, public CRenderSystemGLES
 {
@@ -41,6 +45,7 @@ public:
   virtual bool ResizeWindow(int newWidth, int newHeight, int newLeft, int newTop);
   virtual bool SetFullScreen(bool fullScreen, RESOLUTION_INFO& res, bool blankOtherDisplays);
   virtual void UpdateResolutions();
+  virtual bool CanDoWindowed() { return false; }
 
   virtual void ShowOSMouse(bool show);
   virtual bool HasCursor();
@@ -56,11 +61,19 @@ public:
 
   virtual bool BeginRender();
   virtual bool EndRender();
-  virtual int GetNumScreens();    
   
-          void InitDisplayLink(void);
+  virtual void Register(IDispResource *resource);
+  virtual void Unregister(IDispResource *resource);
+  
+  virtual int GetNumScreens();    
+  virtual int GetCurrentScreen();
+  
+          void InitDisplayLink(CVideoSyncCocoa *syncImpl);
+          void VblankHandler(int64_t nowtime, double fps);
           void DeinitDisplayLink(void);
           double GetDisplayLinkFPS(void);
+          void OnAppFocusChange(bool focus);
+          bool IsBackgrounded() const { return m_bIsBackgrounded; }
 
 protected:
   virtual bool PresentRenderImpl(const CDirtyRegionList &dirty);
@@ -71,6 +84,10 @@ protected:
   bool         m_bWasFullScreenBeforeMinimize;
   CStdString   m_eglext;
   int          m_iVSyncErrors;
+  CCriticalSection             m_resourceSection;
+  std::vector<IDispResource*>  m_resources;
+  bool         m_bIsBackgrounded;
+  CVideoSyncCocoa *m_VideoSync;
   
 private:
   bool GetScreenResolution(int* w, int* h, double* fps, int screenIdx);

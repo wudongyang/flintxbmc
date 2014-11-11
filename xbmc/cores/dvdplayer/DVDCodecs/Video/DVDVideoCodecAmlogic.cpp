@@ -45,7 +45,7 @@ CDVDVideoCodecAmlogic::CDVDVideoCodecAmlogic() :
   m_framerate(0.0),
   m_video_rate(0),
   m_mpeg2_sequence(NULL),
-  m_parser(NULL),
+  m_bitparser(NULL),
   m_bitstream(NULL)
 {
   pthread_mutex_init(&m_queue_mutex, NULL);
@@ -69,6 +69,13 @@ bool CDVDVideoCodecAmlogic::Open(CDVDStreamInfo &hints, CDVDCodecOptions &option
     case AV_CODEC_ID_MPEG1VIDEO:
     case AV_CODEC_ID_MPEG2VIDEO:
     case AV_CODEC_ID_MPEG2VIDEO_XVMC:
+      if (m_hints.width <= 1280)
+      {
+        // amcodec struggles with VOB playback
+        // which can be handled via software
+        return false;
+        break;
+      }
       m_mpeg2_sequence_pts = 0;
       m_mpeg2_sequence = new mpeg2_sequence;
       m_mpeg2_sequence->width  = m_hints.width;
@@ -96,8 +103,8 @@ bool CDVDVideoCodecAmlogic::Open(CDVDStreamInfo &hints, CDVDCodecOptions &option
         m_hints.extradata = malloc(m_hints.extrasize);
         memcpy(m_hints.extradata, m_bitstream->GetExtraData(), m_hints.extrasize);
       }
-      //m_parser = new CBitstreamParser();
-      //m_parser->Open();
+      //m_bitparser = new CBitstreamParser();
+      //m_bitparser->Open();
       break;
     case AV_CODEC_ID_MPEG4:
     case AV_CODEC_ID_MSMPEG4V2:
@@ -107,7 +114,8 @@ bool CDVDVideoCodecAmlogic::Open(CDVDStreamInfo &hints, CDVDCodecOptions &option
     case AV_CODEC_ID_H263:
     case AV_CODEC_ID_H263P:
     case AV_CODEC_ID_H263I:
-      m_pFormatName = "am-h263";
+      // amcodec can't handle h263
+      return false;
       break;
     case AV_CODEC_ID_FLV1:
       m_pFormatName = "am-flv1";
@@ -116,7 +124,9 @@ bool CDVDVideoCodecAmlogic::Open(CDVDStreamInfo &hints, CDVDCodecOptions &option
     case AV_CODEC_ID_RV20:
     case AV_CODEC_ID_RV30:
     case AV_CODEC_ID_RV40:
-      m_pFormatName = "am-rv";
+      // m_pFormatName = "am-rv";
+      // rmvb is not handled well by amcodec
+      return false;
       break;
     case AV_CODEC_ID_VC1:
       m_pFormatName = "am-vc1";
@@ -175,7 +185,7 @@ bool CDVDVideoCodecAmlogic::Open(CDVDStreamInfo &hints, CDVDCodecOptions &option
 void CDVDVideoCodecAmlogic::Dispose(void)
 {
   if (m_Codec)
-    m_Codec->CloseDecoder(), m_Codec = NULL;
+    m_Codec->CloseDecoder(), delete m_Codec, m_Codec = NULL;
   if (m_videobuffer.iFlags)
     m_videobuffer.iFlags = 0;
   if (m_mpeg2_sequence)
@@ -184,8 +194,8 @@ void CDVDVideoCodecAmlogic::Dispose(void)
   if (m_bitstream)
     delete m_bitstream, m_bitstream = NULL;
 
-  if (m_parser)
-    delete m_parser, m_parser = NULL;
+  if (m_bitparser)
+    delete m_bitparser, m_bitparser = NULL;
 
   while (m_queue_depth)
     FrameQueuePop();
@@ -206,8 +216,8 @@ int CDVDVideoCodecAmlogic::Decode(uint8_t *pData, int iSize, double dts, double 
       iSize = m_bitstream->GetConvertSize();
     }
 
-    if (m_parser)
-      m_parser->FindIdrSlice(pData, iSize);
+    if (m_bitparser)
+      m_bitparser->FindIdrSlice(pData, iSize);
 
     FrameRateTracking( pData, iSize, dts, pts);
   }

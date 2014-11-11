@@ -49,6 +49,11 @@ enum DVDStreamType
 #define DVDSTREAM_BLOCK_SIZE_FILE (2048 * 16)
 #define DVDSTREAM_BLOCK_SIZE_DVD  2048
 
+namespace XFILE
+{
+  class CFile;
+}
+
 namespace PVR
 {
   class CPVRChannel;
@@ -118,6 +123,7 @@ public:
     virtual void OnPrevious() = 0;
     virtual bool OnMouseMove(const CPoint &point) = 0;
     virtual bool OnMouseClick(const CPoint &point) = 0;
+    virtual bool HasMenu() = 0;
     virtual bool IsInMenu() = 0;
     virtual void SkipStill() = 0;
     virtual double GetTimeStampCorrection() = 0;

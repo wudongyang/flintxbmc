@@ -27,9 +27,10 @@ class CArtist;
 #include <string>
 #include <stdint.h>
 
-#include "utils/Archive.h"
+#include "utils/IArchivable.h"
 #include "utils/ISerializable.h"
 #include "utils/ISortable.h"
+#include "utils/StdString.h"
 #include "XBDateTime.h"
 
 #define REPLAY_GAIN_HAS_TRACK_INFO 1
@@ -46,7 +47,7 @@ enum ReplayGain
 
 namespace MUSIC_INFO
 {
-  class EmbeddedArtInfo
+  class EmbeddedArtInfo : public IArchivable
   {
   public:
     EmbeddedArtInfo() {};
@@ -55,6 +56,7 @@ namespace MUSIC_INFO
     void clear();
     bool empty() const;
     bool matches(const EmbeddedArtInfo &right) const;
+    virtual void Archive(CArchive& ar);
     size_t      size;
     std::string mime;
   };
@@ -86,7 +88,7 @@ public:
   const std::vector<std::string>& GetGenre() const;
   int GetTrackNumber() const;
   int GetDiscNumber() const;
-  int GetTrackAndDiskNumber() const;
+  int GetTrackAndDiscNumber() const;
   int GetDuration() const;  // may be set even if Loaded() returns false
   int GetYear() const;
   int GetDatabaseId() const;
@@ -127,8 +129,8 @@ public:
   void SetDatabaseId(long id, const std::string &type);
   void SetReleaseDate(SYSTEMTIME& dateTime);
   void SetTrackNumber(int iTrack);
-  void SetPartOfSet(int m_iPartOfSet);
-  void SetTrackAndDiskNumber(int iTrackAndDisc);
+  void SetDiscNumber(int iDiscNumber);
+  void SetTrackAndDiscNumber(int iTrackAndDisc);
   void SetDuration(int iSec);
   void SetLoaded(bool bOnOff = true);
   void SetArtist(const CArtist& artist);
@@ -173,7 +175,7 @@ public:
 
   virtual void Archive(CArchive& ar);
   virtual void Serialize(CVariant& ar) const;
-  virtual void ToSortable(SortItem& sortable);
+  virtual void ToSortable(SortItem& sortable, Field field) const;
 
   void Clear();
 protected:
@@ -201,7 +203,7 @@ protected:
   int m_iDuration;
   int m_iTrack;     // consists of the disk number in the high 16 bits, the track number in the low 16bits
   int m_iDbId;
-  std::string m_type; ///< item type "song", "album", "artist"
+  MediaType m_type; ///< item type "song", "album", "artist"
   bool m_bLoaded;
   char m_rating;
   int m_listeners;

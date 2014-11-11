@@ -23,7 +23,7 @@
 #include <map>
 
 #include "cores/AudioEngine/Interfaces/AESound.h"
-#include "settings/ISettingCallback.h"
+#include "settings/lib/ISettingCallback.h"
 #include "threads/CriticalSection.h"
 #include "utils/log.h"
 #include "utils/StdString.h"
@@ -66,7 +66,7 @@ public:
 
   void PlayActionSound(const CAction& action);
   void PlayWindowSound(int id, WINDOW_SOUND event);
-  void PlayPythonSound(const CStdString& strFileName);
+  void PlayPythonSound(const CStdString& strFileName, bool useCached = true);
 
   void Enable(bool bEnable);
   void SetVolume(float level);
@@ -89,6 +89,7 @@ private:
 
   IAESound* LoadSound(const CStdString &filename);
   void      FreeSound(IAESound *sound);
+  void      FreeSoundAllUsage(IAESound *sound);
   IAESound* LoadWindowSound(TiXmlNode* pWindowNode, const CStdString& strIdentifier);
 };
 

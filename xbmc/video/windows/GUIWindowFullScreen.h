@@ -23,17 +23,6 @@
 #include "guilib/GUIWindow.h"
 #include "threads/CriticalSection.h"
 
-enum SubtitleAlign
-{
-  SUBTITLE_ALIGN_MANUAL         = 0,
-  SUBTITLE_ALIGN_BOTTOM_INSIDE,
-  SUBTITLE_ALIGN_BOTTOM_OUTSIDE,
-  SUBTITLE_ALIGN_TOP_INSIDE,
-  SUBTITLE_ALIGN_TOP_OUTSIDE
-};
-
-class CGUITextLayout; // forward
-
 class CGUIWindowFullScreen : public CGUIWindow
 {
 public:
@@ -52,10 +41,10 @@ protected:
   virtual EVENT_RESULT OnMouseEvent(const CPoint &point, const CMouseEvent &event);
 
 private:
-  void RenderTTFSubtitles();
   void SeekChapter(int iChapter);
   void FillInTVGroups();
   void ToggleOSD();
+  void TriggerOSD();
 
   enum SEEK_TYPE { SEEK_ABSOLUTE, SEEK_RELATIVE };
   enum SEEK_DIRECTION { SEEK_FORWARD, SEEK_BACKWARD };
@@ -81,7 +70,4 @@ private:
   unsigned int m_timeCodeTimeout;
   int m_timeCodeStamp[6];
   int m_timeCodePosition;
-  
-  CCriticalSection m_fontLock;
-  CGUITextLayout* m_subsLayout;
 };

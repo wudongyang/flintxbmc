@@ -38,6 +38,9 @@
 
 CLogindUPowerSyscall::CLogindUPowerSyscall()
 {
+  m_delayLockFd = -1;
+  m_lowBattery = false;
+
   CLog::Log(LOGINFO, "Selected Logind/UPower as PowerSyscall");
 
   // Check if we have UPower. If not, we avoid any battery related operations.
@@ -204,9 +207,10 @@ void CLogindUPowerSyscall::UpdateBatteryLevel()
   dbus_free_string_array(source);
 
   if (batteryCount > 0)
+  {
     m_batteryLevel = (int)(batteryLevelSum / (double)batteryCount);
-
-  m_lowBattery = CDBusUtil::GetVariant("org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower", "OnLowBattery").asBoolean();
+    m_lowBattery = CDBusUtil::GetVariant("org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower", "OnLowBattery").asBoolean();
+  }
 }
 
 bool CLogindUPowerSyscall::PumpPowerEvents(IPowerEventsCallback *callback)
@@ -223,10 +227,10 @@ bool CLogindUPowerSyscall::PumpPowerEvents(IPowerEventsCallback *callback)
     {
       if (dbus_message_is_signal(msg, "org.freedesktop.login1.Manager", "PrepareForSleep"))
       {
-        bool arg;
+        dbus_bool_t arg;
         // the boolean argument defines whether we are going to sleep (true) or just woke up (false)
         dbus_message_get_args(msg, NULL, DBUS_TYPE_BOOLEAN, &arg, DBUS_TYPE_INVALID);
-        CLog::Log(LOGDEBUG, "LogindUPowerSyscall: Received PrepareForSleep with arg %i", arg);
+        CLog::Log(LOGDEBUG, "LogindUPowerSyscall: Received PrepareForSleep with arg %i", (int)arg);
         if (arg)
         {
           callback->OnSleep();
@@ -264,6 +268,7 @@ bool CLogindUPowerSyscall::PumpPowerEvents(IPowerEventsCallback *callback)
 
 void CLogindUPowerSyscall::InhibitDelayLock()
 {
+#ifdef DBUS_TYPE_UNIX_FD
   CDBusMessage message("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "Inhibit");
   message.AppendArgument("sleep"); // what to inhibit
   message.AppendArgument("XBMC"); // who
@@ -287,6 +292,9 @@ void CLogindUPowerSyscall::InhibitDelayLock()
   }
 
     CLog::Log(LOGDEBUG, "LogindUPowerSyscall - inhibit lock taken, fd %i", m_delayLockFd);
+#else
+    CLog::Log(LOGWARNING, "LogindUPowerSyscall - inhibit lock support not compiled in");
+#endif
 }
 
 void CLogindUPowerSyscall::ReleaseDelayLock()

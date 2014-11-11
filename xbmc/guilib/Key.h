@@ -72,15 +72,26 @@
 #define KEY_BUTTON_LEFT_THUMB_STICK_LEFT    282
 #define KEY_BUTTON_LEFT_THUMB_STICK_RIGHT   283
 
-#define KEY_VMOUSE          0xEFFF
-
 // 0xF000 -> 0xF200 is reserved for the keyboard; a keyboard press is either
 #define KEY_VKEY            0xF000 // a virtual key/functional key e.g. cursor left
 #define KEY_ASCII           0xF100 // a printable character in the range of TRUE ASCII (from 0 to 127) // FIXME make it clean and pure unicode! remove the need for KEY_ASCII
 #define KEY_UNICODE         0xF200 // another printable character whose range is not included in this KEY code
 
-// 0xE000 -> 0xE0FF is reserved for mouse actions
-#define KEY_MOUSE           0xE000
+// 0xE000 -> 0xEFFF is reserved for mouse actions
+#define KEY_VMOUSE          0xEFFF
+
+#define KEY_MOUSE_START            0xE000
+#define KEY_MOUSE_CLICK            0xE000
+#define KEY_MOUSE_RIGHTCLICK       0xE001
+#define KEY_MOUSE_MIDDLECLICK      0xE002
+#define KEY_MOUSE_DOUBLE_CLICK     0xE010
+#define KEY_MOUSE_LONG_CLICK       0xE020
+#define KEY_MOUSE_WHEEL_UP         0xE101
+#define KEY_MOUSE_WHEEL_DOWN       0xE102
+#define KEY_MOUSE_DRAG             0xE103
+#define KEY_MOUSE_MOVE             0xE104
+#define KEY_MOUSE_NOOP             0xEFFF
+#define KEY_MOUSE_END              0xEFFF
 
 // 0xD000 -> 0xD0FF is reserved for WM_APPCOMMAND messages
 #define KEY_APPCOMMAND      0xD000
@@ -197,6 +208,11 @@
 #define ACTION_CREATE_EPISODE_BOOKMARK 95 //Creates an episode bookmark on the currently playing video file containing more than one episode
 #define ACTION_CREATE_BOOKMARK         96 //Creates a bookmark of the currently playing video file
 
+#define ACTION_CHAPTER_OR_BIG_STEP_FORWARD       97 // Goto the next chapter, if not available perform a big step forward
+#define ACTION_CHAPTER_OR_BIG_STEP_BACK          98 // Goto the previous chapter, if not available perform a big step back
+
+#define ACTION_CYCLE_SUBTITLE         99 // switch to next subtitle of movie, but will not enable/disable the subtitles. Can be used in videoFullScreen.xml window id=2005
+
 #define ACTION_MOUSE_START            100
 #define ACTION_MOUSE_LEFT_CLICK       100
 #define ACTION_MOUSE_RIGHT_CLICK      101
@@ -206,6 +222,7 @@
 #define ACTION_MOUSE_WHEEL_DOWN       105
 #define ACTION_MOUSE_DRAG             106
 #define ACTION_MOUSE_MOVE             107
+#define ACTION_MOUSE_LONG_CLICK       108
 #define ACTION_MOUSE_END              109
 
 #define ACTION_BACKSPACE          110
@@ -232,7 +249,6 @@
 #define ACTION_ANALOG_SEEK_BACK     125 // seeks backward, and displays the seek bar.
 
 #define ACTION_VIS_PRESET_SHOW        126
-#define ACTION_VIS_PRESET_LIST        127
 #define ACTION_VIS_PRESET_NEXT        128
 #define ACTION_VIS_PRESET_PREV        129
 #define ACTION_VIS_PRESET_LOCK        130
@@ -324,9 +340,12 @@
 #define ACTION_STEREOMODE_TOGGLE      237 // turns 3d mode on/off
 #define ACTION_STEREOMODE_SELECT      238
 #define ACTION_STEREOMODE_TOMONO      239
+#define ACTION_STEREOMODE_SET         240
 
-#define ACTION_SETTINGS_RESET         240
-#define ACTION_SETTINGS_LEVEL_CHANGE  241
+#define ACTION_SETTINGS_RESET         241
+#define ACTION_SETTINGS_LEVEL_CHANGE  242
+
+#define ACTION_TRIGGER_OSD            243 // show autoclosing OSD. Can b used in videoFullScreen.xml window id=2005
 
 // touch actions
 #define ACTION_TOUCH_TAP              401
@@ -365,6 +384,8 @@
 #define ICON_TYPE_WEATHER       107
 #define ICON_TYPE_SETTINGS      109
 
+#ifndef SWIG
+
 class CKey;
 
 /*!
@@ -378,6 +399,7 @@ public:
   CAction(int actionID, wchar_t unicode);
   CAction(int actionID, unsigned int state, float posX, float posY, float offsetX, float offsetY, const CStdString &name = "");
   CAction(int actionID, const CStdString &name, const CKey &key);
+  CAction(int actionID, const std::string &name);
 
   /*! \brief Identifier of the action
    \return id of the action
@@ -519,5 +541,7 @@ private:
   float m_repeat; // time since last keypress
   bool m_fromService;
 };
+#endif //undef SWIG
+
 #endif
 

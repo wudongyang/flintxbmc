@@ -32,6 +32,7 @@
 #include "xbmc.h"
 #include "android/jni/Context.h"
 #include "android/jni/BroadcastReceiver.h"
+#include "threads/Event.h"
 
 // forward delares
 class CJNIWakeLock;
@@ -79,13 +80,13 @@ public:
   void onLostFocus();
 
 
-  static ANativeWindow* GetNativeWindow() { return m_window; };
+  static const ANativeWindow** GetNativeWindow(int timeout);
   static int SetBuffersGeometry(int width, int height, int format);
   static int android_printf(const char *format, ...);
   
   static int GetBatteryLevel();
   static bool StartActivity(const std::string &package, const std::string &intent = std::string(), const std::string &dataType = std::string(), const std::string &dataURI = std::string());
-  static bool ListApplications(std::vector <androidPackage> *applications);
+  static std::vector <androidPackage> GetApplications();
   static bool GetIconSize(const std::string &packageName, int *width, int *height);
   static bool GetIcon(const std::string &packageName, void* buffer, unsigned int bufSize); 
 
@@ -98,6 +99,8 @@ public:
   static bool GetExternalStorage(std::string &path, const std::string &type = "");
   static bool GetStorageUsage(const std::string &path, std::string &usage);
   static int GetMaxSystemVolume();
+  static int GetSystemVolume();
+  static void SetSystemVolume(int val);
 
   static int GetDPI();
 protected:
@@ -117,12 +120,16 @@ private:
   static ANativeActivity *m_activity;
   CJNIWakeLock *m_wakeLock;
   static int m_batteryLevel;  
+  static int m_initialVolume;  
   bool m_firstrun;
   bool m_exiting;
   pthread_t m_thread;
-  
+  static CCriticalSection m_applicationsMutex;
+  static std::vector<androidPackage> m_applications;
+
   static ANativeWindow* m_window;
-  
+  static CEvent m_windowCreated;
+
   void XBMC_Pause(bool pause);
   void XBMC_Stop();
   bool XBMC_DestroyDisplay();

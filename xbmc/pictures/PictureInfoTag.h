@@ -21,7 +21,7 @@
 
 #include "utils/ISerializable.h"
 #include "utils/ISortable.h"
-#include "utils/Archive.h"
+#include "utils/IArchivable.h"
 #include "DllLibExif.h"
 #include "XBDateTime.h"
 
@@ -96,7 +96,7 @@ public:
   void Reset();
   virtual void Archive(CArchive& ar);
   virtual void Serialize(CVariant& value) const;
-  virtual void ToSortable(SortItem& sortable);
+  virtual void ToSortable(SortItem& sortable, Field field) const;
   const CPictureInfoTag& operator=(const CPictureInfoTag& item);
   const CStdString GetInfo(int info) const;
 

@@ -11,6 +11,16 @@ AC_ARG_WITH([toolchain],
   [specify path to toolchain. Required for android. Defaults to xcode root for darwin, /usr for linux])],
   [use_toolchain=$withval])
 
+AC_ARG_WITH([platform],
+  [AS_HELP_STRING([--with-platform],
+  [target platform [auto]])],
+  [use_platform=$withval])
+
+AC_ARG_WITH([firmware],
+  [AS_HELP_STRING([--with-firmware],
+  [platform specific firmware []])],
+  [use_firmware=$withval])
+
 AC_ARG_WITH([tarballs],
   [AS_HELP_STRING([--with-tarballs],
   [path where tarballs will be saved [prefix/xbmc-tarballs]])],
@@ -102,7 +112,7 @@ case $host in
     #android builds are always cross
     cross_compiling="yes"
   ;;     
-  i*86*-android-linux-gnu*)
+  i*86*-linux-android*)
     if test "x$use_cpu" = "xauto"; then
       use_cpu=$host_cpu
     fi
@@ -119,22 +129,24 @@ case $host in
     #android builds are always cross
     cross_compiling="yes"
   ;;
-  arm*-*-linux-gnu*)
-    if test "x$use_cpu" = "xauto"; then
-      use_cpu=$host_cpu
+  arm*-*-linux-gnu*|arm*-*-linux-uclibc*)
+    if test "$use_platform" = "auto"; then
+      if test "x$use_cpu" = "xauto"; then
+        use_cpu=$host_cpu
+      fi
+      use_toolchain="${use_toolchain:-/usr}"
+      platform_cflags="-Os -fPIC -DPIC"
+      platform_ldflags="-Wl,-rpath-link=$prefix/$deps_dir/lib"
+      platform_cxxflags="$platform_cflags"
+      platform_os="linux"
     fi
-    use_toolchain="${use_toolchain:-/usr}"
-    platform_cflags="-Os -fPIC -DPIC"
-    platform_ldflags="-Wl,-rpath-link=$prefix/$deps_dir/lib"
-    platform_cxxflags="$platform_cflags"
-    platform_os="linux"
   ;;
-  *i686*-linux-gnu*)
+  *i686*-linux-gnu*|i*86*-*-linux-uclibc*)
     use_cpu=$host_cpu
     use_toolchain="${use_toolchain:-/usr}"
     platform_os="linux"
   ;;
-  x86_64*-linux-gnu*)
+  x86_64*-linux-gnu*|x86_64-*-linux-uclibc*)
     use_cpu=$host_cpu
     use_toolchain="${use_toolchain:-/usr}"
     platform_cflags="-fPIC -DPIC"
@@ -164,16 +176,30 @@ case $host in
         platform_cc=gcc-4.2
         platform_cxx=g++-4.2
         ;;
-      *)
+      4.* | 4.*.*)
         platform_cc=llvm-gcc-4.2
         platform_cxx=llvm-g++-4.2
+        ;; 
+      *)
+        platform_cc=clang
+        platform_cxx=clang++
+        platform_cflags="-fheinous-gnu-extensions -no-cpp-precomp"
+        platform_ldflags="-Wl,-search_paths_first"
+        platform_cxxflags="-no-cpp-precomp"
         ;;
     esac
     case $host in
       *86*-apple-darwin)
         found_sdk_version=[`$use_xcodebuild -showsdks | grep macosx | sort |  tail -n 1 | grep -oE 'macosx[0-9.0-9]+' | cut -c 7-$NF`]
+        case $use_xcode in
+          5.* | 5.*.* )
+            use_toolchain="${use_xcodepath}/Toolchains/XcodeDefault.xctoolchain"
+            ;;
+          *)
+            use_toolchain="${use_toolchain:-$use_xcodepath}"
+            ;;
+        esac
         use_sdk="${use_sdk:-$found_sdk_version}"
-        use_toolchain="${use_toolchain:-$use_xcodepath}"
         if test "$use_cpu" = "armv7"; then
           AC_MSG_ERROR(error in configure of --with-arch=$use_cpu)
         fi
@@ -182,6 +208,8 @@ case $host in
           10.6);;
           10.7);;
           10.8);;
+          10.9);;
+          10.10);;
           *)
             AC_MSG_ERROR(error in configure of --with-sdk=$use_sdk)
         esac
@@ -217,11 +245,21 @@ case $host in
         found_sdk_version=[`$use_xcodebuild -showsdks | grep iphoneos | sort | tail -n 1 | awk '{ print $2}'`]
         use_sdk="${use_sdk:-$found_sdk_version}"
         sdk_name=iphoneos$use_sdk
-        use_toolchain="${use_toolchain:-`$use_xcodebuild -version -sdk $sdk_name PlatformPath`/Developer}"
+        case $use_xcode in
+          3.*.* | 4.* | 4.*.*)
+            use_toolchain="${use_toolchain:-`$use_xcodebuild -version -sdk $sdk_name PlatformPath`/Developer}"
+            ;;
+          *)
+            use_toolchain="${use_xcodepath}/Toolchains/XcodeDefault.xctoolchain"
+            ;;
+        esac
+        
 	case $use_sdk in
           4.*);;
           5.*);;
           6.*);;
+          7.*);;
+          8.*);;
             *)
               AC_MSG_ERROR(error in configure of --with-sdk=$use_sdk)
             ;;
@@ -244,6 +282,37 @@ case $host in
   *)
     AC_MSG_ERROR(unsupported host ($use_host))
 esac
+
+if test "$use_platform" = "raspberry-pi"; then
+  if test -d "${use_firmware}/opt/vc/include"; then
+    :
+  else
+    AC_MSG_ERROR([Raspberry Pi firmware not found])
+  fi
+  use_neon=no
+  use_arch="arm"
+  use_cpu="arm1176jzf-s"
+  use_hardcoded_tables="yes"
+  use_alsa="no"
+  ARCH="arm"
+  platform_os="linux"
+  cross_compiling="yes"
+  use_host="arm-linux-gnueabihf"
+  deps_dir="$use_host"
+  platform_cflags="-pipe -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfloat-abi=hard \
+   -mfpu=vfp -mabi=aapcs-linux -Wno-psabi -Wa,-mno-warn-deprecated \
+   -Wno-deprecated-declarations -isystem${use_firmware}/opt/vc/include \
+   -isystem${use_firmware}/opt/vc/include/interface/vcos/pthreads \
+   -isystem${use_firmware}/opt/vc/include/interface/vmcs_host/linux"
+  platform_cxxflags="-pipe -mcpu=arm1176jzf-s -mtune=arm1176jzf-s \
+   -mfloat-abi=hard -mfpu=vfp -mabi=aapcs-linux -Wno-psabi \
+   -Wa,-mno-warn-deprecated -Wno-deprecated-declarations \
+   -isystem${use_firmware}/opt/vc/include \
+   -isystem${use_firmware}/opt/vc/include/interface/vcos/pthreads \
+   -isystem${use_firmware}/opt/vc/include/interface/vmcs_host/linux"
+  platform_ldflags="-L${use_firmware}/opt/vc/lib -lEGL -lGLESv2 -lbcm_host -lvcos \
+   -lvchiq_arm"
+fi
 
 XBMC_SETUP_ARCH_DEFINES()
 
@@ -311,16 +380,38 @@ if test "$platform_os" == "android"; then
     AC_MSG_ERROR("NDK path is required for android")
   fi
 
+  if ! test -f "$use_ndk/RELEASE.TXT" ; then
+    AC_MSG_ERROR("$use_ndk is not an NDK directory")
+  fi
+  use_ndk_ver=0x`cat $use_ndk/RELEASE.TXT | sed 's/^r\([[0-9a-z]]\+\)\b.*/\1/'`
+
   if test -z $use_sdk_path; then
     AC_MSG_ERROR("SDK path is required for android")
   fi
 
-  if [ ! test -f $use_sdk_path/tools/zipalign ]; then
+  if [ ! test -f $use_sdk_path/tools/android ]; then
     AC_MSG_ERROR(verify sdk path)
   fi
 
   if [ ! test -f $use_ndk/sources/android/native_app_glue/android_native_app_glue.h ]; then
     AC_MSG_ERROR(verify ndk path)
+  fi
+
+  build_tools_path=$use_sdk_path/tools:$use_sdk_path/platform-tools:$use_sdk_path/build-tools/`ls $use_sdk_path/build-tools | sort -V | tail -n 1`
+
+  AC_PATH_PROG(AAPT,aapt,"no",$build_tools_path)
+  if test "x$AAPT" = "xno" ; then
+    AC_MSG_ERROR("Missing program: aapt")
+  fi
+
+  AC_PATH_PROG(DX,dx,"no",$build_tools_path)
+  if test "x$DX" = "xno" ; then
+    AC_MSG_ERROR("Missing program: dx")
+  fi
+
+  AC_PATH_PROG(ZIPALIGN,zipalign,"no",$build_tools_path)
+  if test "x$ZIPALIGN" = "xno" ; then
+    AC_MSG_ERROR("Missing program: zipalign")
   fi
 fi
 
@@ -373,6 +464,7 @@ if test "$platform_os" == "android"; then
 echo -e
   AC_SUBST(use_sdk_path)
   AC_SUBST(use_ndk)
+  AC_SUBST(use_ndk_ver)
   AC_SUBST(use_sdk)
 fi
 
@@ -383,6 +475,7 @@ AC_SUBST(use_cpu)
 AC_SUBST(use_toolchain)
 AC_SUBST(use_build_toolchain)
 AC_SUBST(use_tarballs)
+AC_SUBST(use_platform)
 AC_SUBST(cross_compiling)
 AC_SUBST(platform_cflags)
 AC_SUBST(platform_cxxflags)
@@ -394,6 +487,7 @@ AC_SUBST(link_iconv)
 AC_SUBST(need_libiconv)
 AC_SUBST(use_gplv3)
 AC_SUBST(has_libcrystax)
+AC_SUBST(use_xcode)
 
 AC_OUTPUT
 echo -e "toolchain:\t $use_toolchain"

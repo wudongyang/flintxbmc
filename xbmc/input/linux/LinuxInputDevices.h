@@ -41,7 +41,7 @@ public:
   CLinuxInputDevice(const std::string fileName, int index);
   ~CLinuxInputDevice();
   XBMC_Event ReadEvent();
-  char* GetDeviceName();
+  const std::string& GetFileName();
   bool IsUnplugged();
  
 private:
@@ -89,6 +89,7 @@ public:
   XBMC_Event ReadEvent();
   bool IsRemoteLowBattery();
   bool IsRemoteNotPaired();
+  size_t Size() { return m_devices.size(); }
 private:
   CCriticalSection m_devicesListLock;
   bool CheckDevice(const char *device);

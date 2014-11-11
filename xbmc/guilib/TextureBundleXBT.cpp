@@ -29,8 +29,10 @@
 #include "filesystem/SpecialProtocol.h"
 #include "utils/EndianSwap.h"
 #include "utils/URIUtils.h"
+#include "utils/StringUtils.h"
 #include "XBTF.h"
 #include <lzo/lzo1x.h>
+#include "utils/StringUtils.h"
 
 #ifdef TARGET_WINDOWS
 #pragma comment(lib,"liblzo2.lib")
@@ -59,7 +61,7 @@ bool CTextureBundleXBT::OpenBundle()
     // if we are the theme bundle, we only load if the user has chosen
     // a valid theme (or the skin has a default one)
     CStdString theme = CSettings::Get().GetString("lookandfeel.skintheme");
-    if (!theme.IsEmpty() && theme.CompareNoCase("SKINDEFAULT"))
+    if (!theme.empty() && !StringUtils::EqualsNoCase(theme, "SKINDEFAULT"))
     {
       CStdString themeXBT(URIUtils::ReplaceExtension(theme, ".xbt"));
       strPath = URIUtils::AddFileToFolder(g_graphicsContext.GetMediaDir(), "media");
@@ -113,7 +115,7 @@ bool CTextureBundleXBT::HasFile(const CStdString& Filename)
 
 void CTextureBundleXBT::GetTexturesFromPath(const CStdString &path, std::vector<CStdString> &textures)
 {
-  if (path.GetLength() > 1 && path[1] == ':')
+  if (path.size() > 1 && path[1] == ':')
     return;
 
   if (!m_XBTFReader.IsOpen() && !OpenBundle())
@@ -121,13 +123,12 @@ void CTextureBundleXBT::GetTexturesFromPath(const CStdString &path, std::vector<
 
   CStdString testPath = Normalize(path);
   URIUtils::AddSlashAtEnd(testPath);
-  int testLength = testPath.GetLength();
 
   std::vector<CXBTFFile>& files = m_XBTFReader.GetFiles();
   for (size_t i = 0; i < files.size(); i++)
   {
     CStdString path = files[i].GetPath();
-    if (path.Left(testLength).Equals(testPath))
+    if (StringUtils::StartsWithNoCase(path, testPath))
       textures.push_back(path);
   }
 }
@@ -197,7 +198,7 @@ bool CTextureBundleXBT::ConvertFrameToTexture(const CStdString& name, CXBTFFrame
   squish::u8 *buffer = new squish::u8[(size_t)frame.GetPackedSize()];
   if (buffer == NULL)
   {
-    CLog::Log(LOGERROR, "Out of memory loading texture: %s (need %"PRIu64" bytes)", name.c_str(), frame.GetPackedSize());
+    CLog::Log(LOGERROR, "Out of memory loading texture: %s (need %" PRIu64" bytes)", name.c_str(), frame.GetPackedSize());
     return false;
   }
 
@@ -215,7 +216,7 @@ bool CTextureBundleXBT::ConvertFrameToTexture(const CStdString& name, CXBTFFrame
     squish::u8 *unpacked = new squish::u8[(size_t)frame.GetUnpackedSize()];
     if (unpacked == NULL)
     {
-      CLog::Log(LOGERROR, "Out of memory unpacking texture: %s (need %"PRIu64" bytes)", name.c_str(), frame.GetUnpackedSize());
+      CLog::Log(LOGERROR, "Out of memory unpacking texture: %s (need %" PRIu64" bytes)", name.c_str(), frame.GetUnpackedSize());
       delete[] buffer;
       return false;
     }
@@ -260,8 +261,10 @@ void CTextureBundleXBT::SetThemeBundle(bool themeBundle)
 CStdString CTextureBundleXBT::Normalize(const CStdString &name)
 {
   CStdString newName(name);
-  newName.Normalize();
-  newName.Replace('\\','/');
+  
+  StringUtils::Trim(newName);
+  StringUtils::ToLower(newName);
+  StringUtils::Replace(newName, '\\','/');
 
   return newName;
 }

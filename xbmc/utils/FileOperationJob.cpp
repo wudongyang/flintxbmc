@@ -28,6 +28,7 @@
 #include "log.h"
 #include "Util.h"
 #include "URIUtils.h"
+#include "utils/StringUtils.h"
 #include "URL.h"
 #include "guilib/LocalizeStrings.h"
 #include "guilib/GUIWindowManager.h"
@@ -42,6 +43,9 @@ using namespace XFILE;
 
 CFileOperationJob::CFileOperationJob()
 {
+  m_action = ActionCopy;
+  m_heading = 0;
+  m_line = 0;
   m_handle = NULL;
   m_displayProgress = false;
 }
@@ -118,7 +122,7 @@ bool CFileOperationJob::DoProcessFolder(FileAction action, const CStdString& str
 {
   // check whether this folder is a filedirectory - if so, we don't process it's contents
   CFileItem item(strPath, false);
-  IFileDirectory *file = CFileDirectoryFactory::Create(strPath, &item);
+  IFileDirectory *file = CFileDirectoryFactory::Create(item.GetURL(), &item);
   if (file)
   {
     delete file;
@@ -157,11 +161,6 @@ bool CFileOperationJob::DoProcess(FileAction action, CFileItemList & items, cons
       URIUtils::RemoveSlashAtEnd(strNoSlash);
       CStdString strFileName = URIUtils::GetFileName(strNoSlash);
 
-      // URL Decode for cases where source uses URL encoding and target does not 
-      if ( URIUtils::ProtocolHasEncodedFilename(CURL(pItem->GetPath()).GetProtocol() )
-       && !URIUtils::ProtocolHasEncodedFilename(CURL(strDestFile).GetProtocol() ) )
-        CURL::Decode(strFileName);
-
       // special case for upnp
       if (URIUtils::IsUPnP(items.GetPath()) || URIUtils::IsUPnP(pItem->GetPath()))
       {
@@ -179,8 +178,8 @@ bool CFileOperationJob::DoProcess(FileAction action, CFileItemList & items, cons
       }
 
       CStdString strnewDestFile;
-      if(!strDestFile.IsEmpty()) // only do this if we have a destination
-        strnewDestFile = URIUtils::AddFileToFolder(strDestFile, strFileName);
+      if(!strDestFile.empty()) // only do this if we have a destination
+        strnewDestFile = URIUtils::ChangeBasePath(pItem->GetPath(), strFileName, strDestFile); // Convert (URL) encoding + slashes (if source / target differ)
 
       if (pItem->m_bIsFolder)
       {
@@ -267,7 +266,7 @@ bool CFileOperationJob::CFileOperation::ExecuteOperation(CFileOperationJob *base
     {
       CLog::Log(LOGDEBUG,"FileManager: copy %s -> %s\n", m_strFileA.c_str(), m_strFileB.c_str());
 
-      bResult = CFile::Cache(m_strFileA, m_strFileB, this, &data);
+      bResult = CFile::Copy(m_strFileA, m_strFileB, this, &data);
     }
     break;
     case ActionMove:
@@ -276,7 +275,7 @@ bool CFileOperationJob::CFileOperation::ExecuteOperation(CFileOperationJob *base
 
       if (CanBeRenamed(m_strFileA, m_strFileB))
         bResult = CFile::Rename(m_strFileA, m_strFileB);
-      else if (CFile::Cache(m_strFileA, m_strFileB, this, &data))
+      else if (CFile::Copy(m_strFileA, m_strFileB, this, &data))
         bResult = CFile::Delete(m_strFileA);
       else
         bResult = false;
@@ -333,15 +332,16 @@ bool CFileOperationJob::CFileOperation::OnFileCallback(void* pContext, int iperc
   double current = data->current + ((double)ipercent * data->opWeight * (double)m_time)/ 100.0;
 
   if (avgSpeed > 1000000.0f)
-    data->base->m_avgSpeed.Format("%.1f MB/s", avgSpeed / 1000000.0f);
+    data->base->m_avgSpeed = StringUtils::Format("%.1f MB/s", avgSpeed / 1000000.0f);
   else
-    data->base->m_avgSpeed.Format("%.1f KB/s", avgSpeed / 1000.0f);
+    data->base->m_avgSpeed = StringUtils::Format("%.1f KB/s", avgSpeed / 1000.0f);
 
   if (data->base->m_handle)
   {
     CStdString line;
-    line.Format("%s (%s)", data->base->GetCurrentFile().c_str(),
-                           data->base->GetAverageSpeed().c_str());
+    line = StringUtils::Format("%s (%s)",
+                               data->base->GetCurrentFile().c_str(),
+                               data->base->GetAverageSpeed().c_str());
     data->base->m_handle->SetText(line);
     data->base->m_handle->SetPercentage((float)current);
   }

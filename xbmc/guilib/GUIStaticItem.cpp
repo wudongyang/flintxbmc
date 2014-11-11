@@ -28,7 +28,6 @@ using namespace std;
 
 CGUIStaticItem::CGUIStaticItem(const TiXmlElement *item, int parentID) : CFileItem()
 {
-  m_visCondition = 0;
   m_visState = false;
 
   assert(item);
@@ -45,7 +44,7 @@ CGUIStaticItem::CGUIStaticItem(const TiXmlElement *item, int parentID) : CFileIt
     const char *id = item->Attribute("id");
     CStdString condition;
     CGUIControlFactory::GetConditionalVisibility(item, condition);
-    m_visCondition = g_infoManager.Register(condition, parentID);
+    SetVisibleCondition(condition, parentID);
     CGUIControlFactory::GetActions(item, "onclick", m_clickActions);
     SetLabel(label.GetLabel(parentID));
     SetLabel2(label2.GetLabel(parentID));
@@ -60,9 +59,9 @@ CGUIStaticItem::CGUIStaticItem(const TiXmlElement *item, int parentID) : CFileIt
     const TiXmlElement *property = item->FirstChildElement("property");
     while (property)
     {
-      CStdString name = property->Attribute("name");
+      CStdString name = XMLUtils::GetAttribute(property, "name");
       CGUIInfoLabel prop;
-      if (!name.IsEmpty() && CGUIControlFactory::GetInfoLabelFromElement(property, prop, parentID))
+      if (!name.empty() && CGUIControlFactory::GetInfoLabelFromElement(property, prop, parentID))
       {
         SetProperty(name, prop.GetLabel(parentID, true).c_str());
         if (!prop.IsConstant())
@@ -74,10 +73,10 @@ CGUIStaticItem::CGUIStaticItem(const TiXmlElement *item, int parentID) : CFileIt
   else
   {
     CStdString label, label2, thumb, icon;
-    label  = item->Attribute("label");  label  = CGUIControlFactory::FilterLabel(label);
-    label2 = item->Attribute("label2"); label2 = CGUIControlFactory::FilterLabel(label2);
-    thumb  = item->Attribute("thumb");  thumb  = CGUIControlFactory::FilterLabel(thumb);
-    icon   = item->Attribute("icon");   icon   = CGUIControlFactory::FilterLabel(icon);
+    label  = XMLUtils::GetAttribute(item, "label");  label  = CGUIControlFactory::FilterLabel(label);
+    label2 = XMLUtils::GetAttribute(item, "label2"); label2 = CGUIControlFactory::FilterLabel(label2);
+    thumb  = XMLUtils::GetAttribute(item, "thumb");  thumb  = CGUIControlFactory::FilterLabel(thumb);
+    icon   = XMLUtils::GetAttribute(item, "icon");   icon   = CGUIControlFactory::FilterLabel(icon);
     const char *id = item->Attribute("id");
     SetLabel(CGUIInfoLabel::GetLabel(label, parentID));
     SetPath(item->FirstChild()->Value());
@@ -87,7 +86,13 @@ CGUIStaticItem::CGUIStaticItem(const TiXmlElement *item, int parentID) : CFileIt
     m_iprogramCount = id ? atoi(id) : 0;
   }
 }
-    
+
+CGUIStaticItem::CGUIStaticItem(const CFileItem &item)
+: CFileItem(item)
+{
+  m_visState = false;
+}
+
 void CGUIStaticItem::UpdateProperties(int contextWindow)
 {
   for (InfoVector::const_iterator i = m_info.begin(); i != m_info.end(); ++i)
@@ -113,7 +118,7 @@ bool CGUIStaticItem::UpdateVisibility(int contextWindow)
 {
   if (!m_visCondition)
     return false;
-  bool state = g_infoManager.GetBoolValue(m_visCondition);
+  bool state = m_visCondition->Get();
   if (state != m_visState)
   {
     m_visState = state;
@@ -127,4 +132,10 @@ bool CGUIStaticItem::IsVisible() const
   if (m_visCondition)
     return m_visState;
   return true;
+}
+
+void CGUIStaticItem::SetVisibleCondition(const std::string &condition, int context)
+{
+  m_visCondition = g_infoManager.Register(condition, context);
+  m_visState = false;
 }

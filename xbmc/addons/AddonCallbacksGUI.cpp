@@ -28,6 +28,7 @@
 #include "filesystem/File.h"
 #include "utils/URIUtils.h"
 #include "utils/TimeUtils.h"
+#include "utils/StringUtils.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/Key.h"
 #include "guilib/TextureManager.h"
@@ -177,7 +178,7 @@ GUIHANDLE CAddonCallbacksGUI::Window_New(void *addonData, const char *xmlFilenam
   CAddonCallbacksGUI* guiHelper = helper->GetHelperGUI();
 
   RESOLUTION_INFO res;
-  CStdString strSkinPath;
+  std::string strSkinPath;
   if (!forceFallback)
   {
     /* Check to see if the XML file exists in current skin. If not use
@@ -187,7 +188,7 @@ GUIHANDLE CAddonCallbacksGUI::Window_New(void *addonData, const char *xmlFilenam
     if (!XFILE::CFile::Exists(strSkinPath))
     {
       /* Check for the matching folder for the skin in the fallback skins folder */
-      CStdString basePath = URIUtils::AddFileToFolder(guiHelper->m_addon->Path(), "resources");
+      std::string basePath = URIUtils::AddFileToFolder(guiHelper->m_addon->Path(), "resources");
       basePath = URIUtils::AddFileToFolder(basePath, "skins");
       basePath = URIUtils::AddFileToFolder(basePath, URIUtils::GetFileName(g_SkinInfo->Path()));
       strSkinPath = g_SkinInfo->GetSkinPath(xmlFilename, &res, basePath);
@@ -203,9 +204,9 @@ GUIHANDLE CAddonCallbacksGUI::Window_New(void *addonData, const char *xmlFilenam
   if (forceFallback)
   {
     //FIXME make this static method of current skin?
-    CStdString str("none");
+    std::string str("none");
     AddonProps props(str, ADDON_SKIN, str, str);
-    CStdString basePath = URIUtils::AddFileToFolder(guiHelper->m_addon->Path(), "resources");
+    std::string basePath = URIUtils::AddFileToFolder(guiHelper->m_addon->Path(), "resources");
     basePath = URIUtils::AddFileToFolder(basePath, "skins");
     basePath = URIUtils::AddFileToFolder(basePath, defaultSkin);
     props.path = basePath;
@@ -506,9 +507,9 @@ void CAddonCallbacksGUI::Window_SetProperty(void *addonData, GUIHANDLE handle, c
 
   CAddonCallbacksGUI* guiHelper = helper->GetHelperGUI();
 
-  if (!handle)
+  if (!handle || !key || !value)
   {
-    CLog::Log(LOGERROR, "Window_SetProperty: %s/%s - No Window", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
+    CLog::Log(LOGERROR, "Window_SetProperty: %s/%s - No Window or NULL key or value", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
     return;
   }
 
@@ -517,10 +518,11 @@ void CAddonCallbacksGUI::Window_SetProperty(void *addonData, GUIHANDLE handle, c
   if (!pWindow)
     return;
 
-  CStdString lowerKey = key;
+  std::string lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  pWindow->SetProperty(lowerKey.ToLower(), value);
+  pWindow->SetProperty(lowerKey, value);
   Unlock();
 }
 
@@ -532,9 +534,9 @@ void CAddonCallbacksGUI::Window_SetPropertyInt(void *addonData, GUIHANDLE handle
 
   CAddonCallbacksGUI* guiHelper = helper->GetHelperGUI();
 
-  if (!handle)
+  if (!handle || !key)
   {
-    CLog::Log(LOGERROR, "Window_SetPropertyInt: %s/%s - No Window", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
+    CLog::Log(LOGERROR, "Window_SetPropertyInt: %s/%s - No Window or NULL key", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
     return;
   }
 
@@ -543,10 +545,11 @@ void CAddonCallbacksGUI::Window_SetPropertyInt(void *addonData, GUIHANDLE handle
   if (!pWindow)
     return;
 
-  CStdString lowerKey = key;
+  std::string lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  pWindow->SetProperty(lowerKey.ToLower(), value);
+  pWindow->SetProperty(lowerKey, value);
   Unlock();
 }
 
@@ -558,9 +561,9 @@ void CAddonCallbacksGUI::Window_SetPropertyBool(void *addonData, GUIHANDLE handl
 
   CAddonCallbacksGUI* guiHelper = helper->GetHelperGUI();
 
-  if (!handle)
+  if (!handle || !key)
   {
-    CLog::Log(LOGERROR, "Window_SetPropertyBool: %s/%s - No Window", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
+    CLog::Log(LOGERROR, "Window_SetPropertyBool: %s/%s - No Window or NULL key", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
     return;
   }
 
@@ -569,10 +572,11 @@ void CAddonCallbacksGUI::Window_SetPropertyBool(void *addonData, GUIHANDLE handl
   if (!pWindow)
     return;
 
-  CStdString lowerKey = key;
+  std::string lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  pWindow->SetProperty(lowerKey.ToLower(), value);
+  pWindow->SetProperty(lowerKey, value);
   Unlock();
 }
 
@@ -584,9 +588,9 @@ void CAddonCallbacksGUI::Window_SetPropertyDouble(void *addonData, GUIHANDLE han
 
   CAddonCallbacksGUI* guiHelper = helper->GetHelperGUI();
 
-  if (!handle)
+  if (!handle || !key)
   {
-    CLog::Log(LOGERROR, "Window_SetPropertyDouble: %s/%s - No Window", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
+    CLog::Log(LOGERROR, "Window_SetPropertyDouble: %s/%s - No Window or NULL key", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
     return;
   }
 
@@ -595,10 +599,11 @@ void CAddonCallbacksGUI::Window_SetPropertyDouble(void *addonData, GUIHANDLE han
   if (!pWindow)
     return;
 
-  CStdString lowerKey = key;
+  std::string lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  pWindow->SetProperty(lowerKey.ToLower(), value);
+  pWindow->SetProperty(lowerKey, value);
   Unlock();
 }
 
@@ -610,9 +615,9 @@ const char* CAddonCallbacksGUI::Window_GetProperty(void *addonData, GUIHANDLE ha
 
   CAddonCallbacksGUI* guiHelper = helper->GetHelperGUI();
 
-  if (!handle)
+  if (!handle || !key)
   {
-    CLog::Log(LOGERROR, "Window_GetProperty: %s/%s - No Window", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
+    CLog::Log(LOGERROR, "Window_GetProperty: %s/%s - No Window or NULL key", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
     return NULL;
   }
 
@@ -621,9 +626,11 @@ const char* CAddonCallbacksGUI::Window_GetProperty(void *addonData, GUIHANDLE ha
   if (!pWindow)
     return NULL;
 
+  std::string lowerKey = key;
+  StringUtils::ToLower(lowerKey);
+
   Lock();
-  CStdString lowerKey = key;
-  string value = pWindow->GetProperty(lowerKey.ToLower()).asString();
+  string value = pWindow->GetProperty(lowerKey).asString();
   Unlock();
 
   return strdup(value.c_str());
@@ -637,9 +644,9 @@ int CAddonCallbacksGUI::Window_GetPropertyInt(void *addonData, GUIHANDLE handle,
 
   CAddonCallbacksGUI* guiHelper = helper->GetHelperGUI();
 
-  if (!handle)
+  if (!handle || !key)
   {
-    CLog::Log(LOGERROR, "Window_GetPropertyInt: %s/%s - No Window", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
+    CLog::Log(LOGERROR, "Window_GetPropertyInt: %s/%s - No Window or NULL key", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
     return -1;
   }
 
@@ -648,9 +655,11 @@ int CAddonCallbacksGUI::Window_GetPropertyInt(void *addonData, GUIHANDLE handle,
   if (!pWindow)
     return -1;
 
+  std::string lowerKey = key;
+  StringUtils::ToLower(lowerKey);
+
   Lock();
-  CStdString lowerKey = key;
-  int value = (int)pWindow->GetProperty(lowerKey.ToLower()).asInteger();
+  int value = (int)pWindow->GetProperty(lowerKey).asInteger();
   Unlock();
 
   return value;
@@ -664,9 +673,9 @@ bool CAddonCallbacksGUI::Window_GetPropertyBool(void *addonData, GUIHANDLE handl
 
   CAddonCallbacksGUI* guiHelper = helper->GetHelperGUI();
 
-  if (!handle)
+  if (!handle || !key)
   {
-    CLog::Log(LOGERROR, "Window_GetPropertyBool: %s/%s - No Window", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
+    CLog::Log(LOGERROR, "Window_GetPropertyBool: %s/%s - No Window or NULL key", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
     return false;
   }
 
@@ -674,10 +683,12 @@ bool CAddonCallbacksGUI::Window_GetPropertyBool(void *addonData, GUIHANDLE handl
   CGUIWindow      *pWindow      = (CGUIWindow*)g_windowManager.GetWindow(pAddonWindow->m_iWindowId);
   if (!pWindow)
     return false;
+  
+  std::string lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  CStdString lowerKey = key;
-  bool value = pWindow->GetProperty(lowerKey.ToLower()).asBoolean();
+  bool value = pWindow->GetProperty(lowerKey).asBoolean();
   Unlock();
 
   return value;
@@ -691,9 +702,9 @@ double CAddonCallbacksGUI::Window_GetPropertyDouble(void *addonData, GUIHANDLE h
 
   CAddonCallbacksGUI* guiHelper = helper->GetHelperGUI();
 
-  if (!handle)
+  if (!handle || !key)
   {
-    CLog::Log(LOGERROR, "Window_GetPropertyDouble: %s/%s - No Window", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
+    CLog::Log(LOGERROR, "Window_GetPropertyDouble: %s/%s - No Window or NULL key", TranslateType(guiHelper->m_addon->Type()).c_str(), guiHelper->m_addon->Name().c_str());
     return 0.0;
   }
 
@@ -701,10 +712,12 @@ double CAddonCallbacksGUI::Window_GetPropertyDouble(void *addonData, GUIHANDLE h
   CGUIWindow      *pWindow      = (CGUIWindow*)g_windowManager.GetWindow(pAddonWindow->m_iWindowId);
   if (!pWindow)
     return 0.0;
+  
+  std::string lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  CStdString lowerKey = key;
-  double value = pWindow->GetProperty(lowerKey.ToLower()).asDouble();
+  double value = pWindow->GetProperty(lowerKey).asDouble();
   Unlock();
 
   return value;
@@ -1118,7 +1131,7 @@ const char* CAddonCallbacksGUI::Control_Progress_GetDescription(void *addonData,
     return NULL;
 
   CGUIProgressControl *pControl = (CGUIProgressControl*)handle;
-  CStdString string = pControl->GetDescription();
+  std::string string = pControl->GetDescription();
 
   char *buffer = (char*) malloc (string.length()+1);
   strcpy(buffer, string.c_str());
@@ -1156,7 +1169,7 @@ const char* CAddonCallbacksGUI::ListItem_GetLabel(void *addonData, GUIHANDLE han
   if (!helper || !handle)
     return NULL;
 
-  CStdString string = ((CFileItem*)handle)->GetLabel();
+  std::string string = ((CFileItem*)handle)->GetLabel();
   char *buffer = (char*) malloc (string.length()+1);
   strcpy(buffer, string.c_str());
   return buffer;
@@ -1177,7 +1190,7 @@ const char* CAddonCallbacksGUI::ListItem_GetLabel2(void *addonData, GUIHANDLE ha
   if (!helper || !handle)
     return NULL;
 
-  CStdString string = ((CFileItem*)handle)->GetLabel2();
+  std::string string = ((CFileItem*)handle)->GetLabel2();
 
   char *buffer = (char*) malloc (string.length()+1);
   strcpy(buffer, string.c_str());
@@ -1283,8 +1296,8 @@ void CAddonCallbacksGUI::RenderAddon_Delete(void *addonData, GUIHANDLE handle)
 
 
 
-CGUIAddonWindow::CGUIAddonWindow(int id, CStdString strXML, CAddon* addon)
- : CGUIMediaWindow(id, strXML)
+CGUIAddonWindow::CGUIAddonWindow(int id, const std::string& strXML, CAddon* addon)
+ : CGUIMediaWindow(id, strXML.c_str())
  , m_iWindowId(id)
  , m_iOldWindowId(0)
  , m_bModal(false)
@@ -1417,8 +1430,8 @@ bool CGUIAddonWindow::OnMessage(CGUIMessage& message)
 
 void CGUIAddonWindow::AllocResources(bool forceLoad /*= FALSE */)
 {
-  CStdString tmpDir = URIUtils::GetDirectory(GetProperty("xmlfile").asString());
-  CStdString fallbackMediaPath;
+  std::string tmpDir = URIUtils::GetDirectory(GetProperty("xmlfile").asString());
+  std::string fallbackMediaPath;
   URIUtils::GetParentPath(tmpDir, fallbackMediaPath);
   URIUtils::RemoveSlashAtEnd(fallbackMediaPath);
   m_mediaDir = fallbackMediaPath;
@@ -1431,9 +1444,6 @@ void CGUIAddonWindow::AllocResources(bool forceLoad /*= FALSE */)
 
 void CGUIAddonWindow::FreeResources(bool forceUnLoad /*= FALSE */)
 {
-  // Unload temporary language strings
-  ClearAddonStrings();
-
   CGUIMediaWindow::FreeResources(forceUnLoad);
 }
 
@@ -1519,12 +1529,6 @@ void CGUIAddonWindow::PulseActionEvent()
   m_actionEvent.Set();
 }
 
-void CGUIAddonWindow::ClearAddonStrings()
-{
-  // Unload temporary language strings
-  g_localizeStrings.ClearBlock(m_addon->Path());
-}
-
 bool CGUIAddonWindow::OnClick(int iItem)
 {
   // Hook Over calling  CGUIMediaWindow::OnClick(iItem) results in it trying to PLAY the file item
@@ -1543,7 +1547,7 @@ void CGUIAddonWindow::SetupShares()
 }
 
 
-CGUIAddonWindowDialog::CGUIAddonWindowDialog(int id, CStdString strXML, CAddon* addon)
+CGUIAddonWindowDialog::CGUIAddonWindowDialog(int id, const std::string& strXML, CAddon* addon)
 : CGUIAddonWindow(id,strXML,addon)
 {
   m_bRunning = false;
@@ -1569,7 +1573,7 @@ bool CGUIAddonWindowDialog::OnMessage(CGUIMessage &message)
 void CGUIAddonWindowDialog::Show(bool show /* = true */)
 {
   unsigned int iCount = g_graphicsContext.exit();
-  ThreadMessage tMsg = {TMSG_GUI_ADDON_DIALOG, 1, show ? 1u : 0u};
+  ThreadMessage tMsg = {TMSG_GUI_ADDON_DIALOG, 1, show ? 1 : 0};
   tMsg.lpVoid = this;
   CApplicationMessenger::Get().SendMessage(tMsg, true);
   g_graphicsContext.restore(iCount);

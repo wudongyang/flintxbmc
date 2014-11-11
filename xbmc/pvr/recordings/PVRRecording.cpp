@@ -33,6 +33,48 @@
 using namespace PVR;
 using namespace EPG;
 
+CPVRRecordingUid::CPVRRecordingUid() :
+    m_iClientId(PVR_VIRTUAL_CLIENT_ID)
+{
+}
+
+CPVRRecordingUid::CPVRRecordingUid(const CPVRRecordingUid &recordingId)
+{
+  m_iClientId = recordingId.m_iClientId;
+  m_strRecordingId = recordingId.m_strRecordingId;
+}
+
+CPVRRecordingUid::CPVRRecordingUid(int iClientId, const std::string& strRecordingId)
+{
+  m_iClientId = iClientId;
+  m_strRecordingId = strRecordingId;
+}
+
+bool CPVRRecordingUid::operator >(const CPVRRecordingUid& right) const
+{
+  return (m_iClientId == right.m_iClientId) ?
+            m_strRecordingId > right.m_strRecordingId :
+            m_iClientId > right.m_iClientId;
+}
+
+bool CPVRRecordingUid::operator <(const CPVRRecordingUid& right) const
+{
+  return (m_iClientId == right.m_iClientId) ?
+            m_strRecordingId < right.m_strRecordingId :
+            m_iClientId < right.m_iClientId;
+}
+
+bool CPVRRecordingUid::operator ==(const CPVRRecordingUid& right) const
+{
+  return m_iClientId == right.m_iClientId && m_strRecordingId == right.m_strRecordingId;
+}
+
+bool CPVRRecordingUid::operator !=(const CPVRRecordingUid& right) const
+{
+  return m_iClientId != right.m_iClientId || m_strRecordingId != right.m_strRecordingId;
+}
+
+
 CPVRRecording::CPVRRecording()
 {
   Reset();
@@ -81,7 +123,8 @@ bool CPVRRecording::operator ==(const CPVRRecording& right) const
        m_strTitle           == right.m_strTitle &&
        m_strIconPath        == right.m_strIconPath &&
        m_strThumbnailPath   == right.m_strThumbnailPath &&
-       m_strFanartPath      == right.m_strFanartPath);
+       m_strFanartPath      == right.m_strFanartPath &&
+       m_iRecordingId       == right.m_iRecordingId);
 }
 
 bool CPVRRecording::operator !=(const CPVRRecording& right) const
@@ -89,20 +132,43 @@ bool CPVRRecording::operator !=(const CPVRRecording& right) const
   return !(*this == right);
 }
 
+void CPVRRecording::Serialize(CVariant& value) const
+{
+  CVideoInfoTag::Serialize(value);
+
+  value["channel"] = m_strChannelName;
+  value["runtime"] = m_duration.GetSecondsTotal();
+  value["lifetime"] = m_iLifetime;
+  value["streamurl"] = m_strStreamURL;
+  value["directory"] = m_strDirectory;
+  value["icon"] = m_strIconPath;
+  value["starttime"] = m_recordingTime.IsValid() ? m_recordingTime.GetAsDBDateTime() : "";
+  value["endtime"] = m_recordingTime.IsValid() ? (m_recordingTime + m_duration).GetAsDBDateTime() : "";
+  value["recordingid"] = m_iRecordingId;
+
+  if (!value.isMember("art"))
+    value["art"] = CVariant(CVariant::VariantTypeObject);
+  if (!m_strThumbnailPath.empty())
+    value["art"]["thumb"] = m_strThumbnailPath;
+  if (!m_strFanartPath.empty())
+    value["art"]["fanart"] = m_strFanartPath;
+}
+
 void CPVRRecording::Reset(void)
 {
-  m_strRecordingId     = StringUtils::EmptyString;
+  m_strRecordingId     .clear();
   m_iClientId          = 0;
-  m_strChannelName     = StringUtils::EmptyString;
-  m_strDirectory       = StringUtils::EmptyString;
-  m_strStreamURL       = StringUtils::EmptyString;
+  m_strChannelName     .clear();
+  m_strDirectory       .clear();
+  m_strStreamURL       .clear();
   m_iPriority          = -1;
   m_iLifetime          = -1;
-  m_strFileNameAndPath = StringUtils::EmptyString;
-  m_strIconPath        = StringUtils::EmptyString;
-  m_strThumbnailPath   = StringUtils::EmptyString;
-  m_strFanartPath      = StringUtils::EmptyString;
+  m_strFileNameAndPath .clear();
+  m_strIconPath        .clear();
+  m_strThumbnailPath   .clear();
+  m_strFanartPath      .clear();
   m_bGotMetaData       = false;
+  m_iRecordingId       = 0;
 
   m_recordingTime.Reset();
   CVideoInfoTag::Reset();
@@ -128,9 +194,9 @@ bool CPVRRecording::Delete(void)
   return true;
 }
 
-bool CPVRRecording::Rename(const CStdString &strNewName)
+bool CPVRRecording::Rename(const std::string &strNewName)
 {
-  m_strTitle.Format("%s", strNewName);
+  m_strTitle = StringUtils::Format("%s", strNewName.c_str());
   PVR_ERROR error = g_PVRClients->RenameRecording(*this);
   if (error != PVR_ERROR_NO_ERROR)
   {
@@ -157,23 +223,30 @@ bool CPVRRecording::SetPlayCount(int count)
 
 void CPVRRecording::UpdateMetadata(void)
 {
-  CVideoDatabase db;
-
-  if (!g_PVRClients->SupportsRecordingPlayCount(m_iClientId))
+  if (m_bGotMetaData)
+    return;
+    
+  bool supportsPlayCount  = g_PVRClients->SupportsRecordingPlayCount(m_iClientId);
+  bool supportsLastPlayed = g_PVRClients->SupportsLastPlayedPosition(m_iClientId);
+  
+  if (!supportsPlayCount || !supportsLastPlayed)
   {
-    if (!m_bGotMetaData && db.Open())
+    CVideoDatabase db;
+    if (db.Open())
     {
-      CFileItem pFileItem(*this);
-      m_playCount = db.GetPlayCount(pFileItem);
+      if (!supportsPlayCount)
+      {
+        CFileItem pFileItem(*this);
+        m_playCount = db.GetPlayCount(pFileItem);
+      }
+
+      if (!supportsLastPlayed)
+        db.GetResumeBookMark(m_strFileNameAndPath, m_resumePoint);
+
+      db.Close();
     }
   }
-
-  if (!g_PVRClients->SupportsLastPlayedPosition(m_iClientId))
-  {
-    if (!m_bGotMetaData && db.Open())
-      db.GetResumeBookMark(m_strFileNameAndPath, m_resumePoint);
-  }
-
+  
   m_bGotMetaData = true;
 }
 
@@ -261,18 +334,17 @@ void CPVRRecording::Update(const CPVRRecording &tag)
     m_resumePoint.totalTimeInSeconds = tag.m_resumePoint.totalTimeInSeconds;
   }
 
-  CStdString strShow;
-  strShow.Format("%s - ", g_localizeStrings.Get(20364).c_str());
-  if (m_strPlotOutline.Left(strShow.size()).Equals(strShow))
+  std::string strShow = StringUtils::Format("%s - ", g_localizeStrings.Get(20364).c_str());
+  if (StringUtils::StartsWithNoCase(m_strPlotOutline, strShow))
   {
-    CStdString strEpisode = m_strPlotOutline;
-    CStdString strTitle = m_strDirectory;
+    std::string strEpisode = m_strPlotOutline;
+    std::string strTitle = m_strDirectory;
     
-    int pos = strTitle.ReverseFind('/');
+    size_t pos = strTitle.rfind('/');
     strTitle.erase(0, pos + 1);
     strEpisode.erase(0, strShow.size());
-    m_strTitle.Format("%s - %s", strTitle.c_str(), strEpisode);
-    pos = strEpisode.Find('-');
+    m_strTitle = StringUtils::Format("%s - %s", strTitle.c_str(), strEpisode.c_str());
+    pos = strEpisode.find('-');
     strEpisode.erase(0, pos + 2);
     m_strPlotOutline = strEpisode;
   }
@@ -281,23 +353,23 @@ void CPVRRecording::Update(const CPVRRecording &tag)
 
 void CPVRRecording::UpdatePath(void)
 {
-  if (!m_strStreamURL.IsEmpty())
+  if (!m_strStreamURL.empty())
   {
     m_strFileNameAndPath = m_strStreamURL;
   }
   else
   {
-    CStdString strTitle(m_strTitle);
-    CStdString strDatetime(m_recordingTime.GetAsSaveString());
-    CStdString strDirectory;
-    CStdString strChannel;
-    strTitle.Replace('/',' ');
+    std::string strTitle(m_strTitle);
+    std::string strDatetime(m_recordingTime.GetAsSaveString());
+    std::string strDirectory;
+    std::string strChannel;
+    StringUtils::Replace(strTitle, '/',' ');
 
-    if (!m_strDirectory.IsEmpty())
-      strDirectory.Format("%s/", m_strDirectory.c_str());
-    if (!m_strChannelName.IsEmpty())
-      strChannel.Format(" (%s)", m_strChannelName.c_str());
-    m_strFileNameAndPath.Format("pvr://recordings/%s%s, TV%s, %s.pvr", strDirectory.c_str(), strTitle.c_str(), strChannel.c_str(), strDatetime.c_str());
+    if (!m_strDirectory.empty())
+      strDirectory = StringUtils::Format("%s/", m_strDirectory.c_str());
+    if (!m_strChannelName.empty())
+      strChannel = StringUtils::Format(" (%s)", m_strChannelName.c_str());
+    m_strFileNameAndPath = StringUtils::Format("pvr://recordings/%s%s, TV%s, %s.pvr", strDirectory.c_str(), strTitle.c_str(), strChannel.c_str(), strDatetime.c_str());
   }
 }
 
@@ -309,16 +381,16 @@ const CDateTime &CPVRRecording::RecordingTimeAsLocalTime(void) const
   return tmp;
 }
 
-CStdString CPVRRecording::GetTitleFromURL(const CStdString &url)
+std::string CPVRRecording::GetTitleFromURL(const std::string &url)
 {
   CRegExp reg(true);
   if (reg.RegComp("pvr://recordings/(.*/)*(.*), TV( \\(.*\\))?, "
       "(19[0-9][0-9]|20[0-9][0-9])[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].pvr"))
   {
     if (reg.RegFind(url.c_str()) >= 0)
-      return reg.GetReplaceString("\\2");
+      return reg.GetMatch(2);
   }
-  return StringUtils::EmptyString;
+  return "";
 }
 
 void CPVRRecording::CopyClientInfo(CVideoInfoTag *target) const

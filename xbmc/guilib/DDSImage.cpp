@@ -119,6 +119,8 @@ bool CDDSImage::ReadFile(const std::string &inputFile)
 
 bool CDDSImage::Create(const std::string &outputFile, unsigned int width, unsigned int height, unsigned int pitch, unsigned char const *brga, double maxMSE)
 {
+  if (!brga)
+    return false;
   if (!Compress(width, height, pitch, brga, maxMSE))
   { // use ARGB
     Allocate(width, height, XB_FMT_A8R8G8B8);
@@ -136,12 +138,10 @@ bool CDDSImage::WriteFile(const std::string &outputFile) const
     return false;
 
   // write the header
-  file.Write("DDS ", 4);
-  file.Write(&m_desc, sizeof(m_desc));
+  return file.Write("DDS ", 4) == 4 &&
+    file.Write(&m_desc, sizeof(m_desc)) == sizeof(m_desc) &&
   // now the data
-  file.Write(m_data, m_desc.linearSize);
-  file.Close();
-  return true;
+    file.Write(m_data, m_desc.linearSize) == m_desc.linearSize;
 }
 
 unsigned int CDDSImage::GetStorageRequirements(unsigned int width, unsigned int height, unsigned int format)

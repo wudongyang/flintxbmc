@@ -23,6 +23,8 @@
 
 #pragma once
 
+#if defined(HAVE_LIBGL)
+
 #include "system.h"
 #include "system_gl.h"
 #include "rendering/RenderSystem.h"
@@ -44,6 +46,7 @@ public:
   virtual bool IsExtSupported(const char* extension);
 
   virtual void SetVSync(bool vsync);
+  virtual void ResetVSync() { m_bVsyncInit = false; }
 
   virtual void SetViewPort(CRect& viewPort);
   virtual void GetViewPort(CRect& viewPort);
@@ -92,5 +95,7 @@ protected:
   GLdouble   m_projection[16];
   GLint      m_viewPort[4];
 };
+
+#endif // HAVE_LIBGL
 
 #endif // RENDER_SYSTEM_H

@@ -52,6 +52,8 @@ public:
   virtual void Process(unsigned int currentTime, CDirtyRegionList &dirtyregions);
   virtual void Render();
   virtual bool OnMessage(CGUIMessage& message);
+  virtual float GetHeight() const;
+  void SetMinHeight(float minHeight);
 
   void SetPageControl(int pageControl);
 
@@ -60,6 +62,7 @@ public:
   void SetAutoScrolling(const TiXmlNode *node);
   void ResetAutoScrolling();
   CStdString GetLabel(int info) const;
+  std::string GetDescription() const;
 
   void Scroll(unsigned int offset);
 
@@ -71,6 +74,10 @@ protected:
   void ScrollToOffset(int offset, bool autoScroll = false);
   unsigned int GetRows() const;
   int GetCurrentPage() const;
+
+  // auto-height
+  float m_minHeight;
+  float m_renderHeight;
 
   // offset of text in the control for scrolling
   unsigned int m_offset;
@@ -86,7 +93,7 @@ protected:
   TransformMatrix m_cachedTextMatrix;
 
   // autoscrolling
-  unsigned int m_autoScrollCondition;
+  INFO::InfoPtr m_autoScrollCondition;
   int          m_autoScrollTime;      // time to scroll 1 line (ms)
   int          m_autoScrollDelay;     // delay before scroll (ms)
   unsigned int m_autoScrollDelayTime; // current offset into the delay

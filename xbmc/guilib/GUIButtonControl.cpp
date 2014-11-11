@@ -125,7 +125,7 @@ void CGUIButtonControl::ProcessText(unsigned int currentTime)
   CStdString label2(m_info2.GetLabel(m_parentID));
   changed |= m_label2.SetMaxRect(m_posX, m_posY, m_width, m_height);
   changed |= m_label2.SetText(label2);
-  if (!label2.IsEmpty())
+  if (!label2.empty())
   {
     changed |= m_label2.SetAlign(XBFONT_RIGHT | (m_label.GetLabelInfo().align & XBFONT_CENTER_Y) | XBFONT_TRUNCATED);
     changed |= m_label2.SetScrolling(HasFocus());
@@ -137,8 +137,10 @@ void CGUIButtonControl::ProcessText(unsigned int currentTime)
                   m_label2.GetRenderRect() != label2RenderRect);
 
     changed |= m_label2.SetColor(GetTextColor());
+    changed |= m_label2.Process(currentTime);
   }
   changed |= m_label.SetColor(GetTextColor());
+  changed |= m_label.Process(currentTime);
   if (changed)
     MarkDirtyRegion();
 }
@@ -167,14 +169,19 @@ bool CGUIButtonControl::OnMessage(CGUIMessage& message)
       SetLabel2(message.GetLabel());
       return true;
     }
-    if (message.GetMessage() == GUI_MSG_SELECTED)
+    if (message.GetMessage() == GUI_MSG_IS_SELECTED)
+    {
+      message.SetParam1(m_bSelected ? 1 : 0);
+      return true;
+    }
+    if (message.GetMessage() == GUI_MSG_SET_SELECTED)
     {
       if (!m_bSelected)
         SetInvalid();
       m_bSelected = true;
       return true;
     }
-    if (message.GetMessage() == GUI_MSG_DESELECTED)
+    if (message.GetMessage() == GUI_MSG_SET_DESELECTED)
     {
       if (m_bSelected)
         SetInvalid();
@@ -275,9 +282,9 @@ EVENT_RESULT CGUIButtonControl::OnMouseEvent(const CPoint &point, const CMouseEv
   return EVENT_RESULT_UNHANDLED;
 }
 
-CStdString CGUIButtonControl::GetDescription() const
+std::string CGUIButtonControl::GetDescription() const
 {
-  CStdString strLabel(m_info.GetLabel(m_parentID));
+  std::string strLabel(m_info.GetLabel(m_parentID));
   return strLabel;
 }
 

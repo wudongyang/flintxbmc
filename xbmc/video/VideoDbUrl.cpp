@@ -37,7 +37,7 @@ CVideoDbUrl::~CVideoDbUrl()
 bool CVideoDbUrl::parse()
 {
   // the URL must start with videodb://
-  if (m_url.GetProtocol() != "videodb" || m_url.GetFileName().empty())
+  if (!m_url.IsProtocol("videodb") || m_url.GetFileName().empty())
     return false;
 
   CStdString path = m_url.Get();
@@ -161,7 +161,13 @@ bool CVideoDbUrl::parse()
 
   // add options based on the QueryParams
   if (queryParams.GetActorId() != -1)
-    AddOption("actorid", (int)queryParams.GetActorId());
+  {
+    std::string optionName = "actorid";
+    if (m_type == "musicvideos")
+      optionName = "artistid";
+
+    AddOption(optionName, (int)queryParams.GetActorId());
+  }
   if (queryParams.GetAlbumId() != -1)
     AddOption("albumid", (int)queryParams.GetAlbumId());
   if (queryParams.GetCountryId() != -1)

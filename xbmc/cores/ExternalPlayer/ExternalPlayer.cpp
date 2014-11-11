@@ -22,6 +22,7 @@
 #include "system.h"
 #include "signal.h"
 #include "limits.h"
+#include "CompileInfo.h"
 #include "threads/SingleLock.h"
 #include "ExternalPlayer.h"
 #include "windowing/WindowingFactory.h"
@@ -106,6 +107,8 @@ bool CExternalPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &opti
   try
   {
     m_bIsPlaying = true;
+    m_time = 0;
+    m_playbackStartTime = XbmcThreads::SystemClockMillis();
     m_launchFilename = file.GetPath();
     CLog::Log(LOGNOTICE, "%s: %s", __FUNCTION__, m_launchFilename.c_str());
     Create();
@@ -120,7 +123,7 @@ bool CExternalPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &opti
   }
 }
 
-bool CExternalPlayer::CloseFile()
+bool CExternalPlayer::CloseFile(bool reopen)
 {
   m_bAbortRequest = true;
 
@@ -143,25 +146,24 @@ bool CExternalPlayer::IsPlaying() const
 
 void CExternalPlayer::Process()
 {
-  CStdString mainFile = m_launchFilename;
-  CStdString archiveContent = "";
+  std::string mainFile = m_launchFilename;
+  std::string archiveContent;
 
   if (m_args.find("{0}") == std::string::npos)
   {
     // Unwind archive names
     CURL url(m_launchFilename);
-    CStdString protocol = url.GetProtocol();
-    if (protocol == "zip" || protocol == "rar"/* || protocol == "iso9660" ??*/ || protocol == "udf")
+    if (url.IsProtocol("zip") || url.IsProtocol("rar") /* || url.IsProtocol("iso9660") ??*/ || url.IsProtocol("udf"))
     {
       mainFile = url.GetHostName();
       archiveContent = url.GetFileName();
     }
-    if (protocol == "musicdb")
+    if (url.IsProtocol("musicdb"))
       mainFile = CMusicDatabaseFile::TranslateUrl(url);
-    if (protocol == "bluray")
+    if (url.IsProtocol("bluray"))
     {
       CURL base(url.GetHostName());
-      if(base.GetProtocol() == "udf")
+      if (base.IsProtocol("udf"))
       {
         mainFile = base.GetHostName(); /* image file */
         archiveContent = base.GetFileName();
@@ -175,17 +177,16 @@ void CExternalPlayer::Process()
   {
     for (unsigned int i = 0; i < m_filenameReplacers.size(); i++)
     {
-      std::vector<CStdString> vecSplit;
-      StringUtils::SplitString(m_filenameReplacers[i], " , ", vecSplit);
+      std::vector<std::string> vecSplit = StringUtils::Split(m_filenameReplacers[i], " , ");
 
       // something is wrong, go to next substitution
       if (vecSplit.size() != 4)
         continue;
 
-      CStdString strMatch = vecSplit[0];
-      strMatch.Replace(",,",",");
-      bool bCaseless = vecSplit[3].Find('i') > -1;
-      CRegExp regExp(bCaseless);
+      std::string strMatch = vecSplit[0];
+      StringUtils::Replace(strMatch, ",,",",");
+      bool bCaseless = vecSplit[3].find('i') != std::string::npos;
+      CRegExp regExp(bCaseless, CRegExp::autoUtf8);
 
       if (!regExp.RegComp(strMatch.c_str()))
       { // invalid regexp - complain in logs
@@ -195,8 +196,8 @@ void CExternalPlayer::Process()
 
       if (regExp.RegFind(mainFile) > -1)
       {
-        CStdString strPat = vecSplit[1];
-        strPat.Replace(",,",",");
+        std::string strPat = vecSplit[1];
+        StringUtils::Replace(strPat, ",,",",");
 
         if (!regExp.RegComp(strPat.c_str()))
         { // invalid regexp - complain in logs
@@ -204,15 +205,15 @@ void CExternalPlayer::Process()
           continue;
         }
 
-        CStdString strRep = vecSplit[2];
-        strRep.Replace(",,",",");
-        bool bGlobal = vecSplit[3].Find('g') > -1;
-        bool bStop = vecSplit[3].Find('s') > -1;
+        std::string strRep = vecSplit[2];
+        StringUtils::Replace(strRep, ",,",",");
+        bool bGlobal = vecSplit[3].find('g') != std::string::npos;
+        bool bStop = vecSplit[3].find('s') != std::string::npos;
         int iStart = 0;
         while ((iStart = regExp.RegFind(mainFile, iStart)) > -1)
         {
           int iLength = regExp.GetFindLen();
-          mainFile = mainFile.Left(iStart) + regExp.GetReplaceString(strRep.c_str()).c_str() + mainFile.Mid(iStart+iLength);
+          mainFile = mainFile.substr(0, iStart) + regExp.GetReplaceString(strRep) + mainFile.substr(iStart + iLength);
           if (!bGlobal)
             break;
         }
@@ -229,11 +230,11 @@ void CExternalPlayer::Process()
   CLog::Log(LOGNOTICE, "%s: Start", __FUNCTION__);
 
   // make sure we surround the arguments with quotes where necessary
-  CStdString strFName;
-  CStdString strFArgs;
+  std::string strFName;
+  std::string strFArgs;
 #if defined(TARGET_WINDOWS)
   // W32 batch-file handline
-  if (m_filename.Right(4) == ".bat" || m_filename.Right(4) == ".cmd")
+  if (StringUtils::EndsWith(m_filename, ".bat") || StringUtils::EndsWith(m_filename, ".cmd"))
   {
     // MSDN says you just need to do this, but cmd's handing of spaces and
     // quotes is soo broken it seems to work much better if you just omit
@@ -250,10 +251,10 @@ void CExternalPlayer::Process()
   strFArgs.append("\" ");
   strFArgs.append(m_args);
 
-  int nReplaced = strFArgs.Replace("{0}", mainFile);
+  int nReplaced = StringUtils::Replace(strFArgs, "{0}", mainFile);
 
   if (!nReplaced)
-    nReplaced = strFArgs.Replace("{1}", mainFile) + strFArgs.Replace("{2}", archiveContent);
+    nReplaced = StringUtils::Replace(strFArgs, "{1}", mainFile) + StringUtils::Replace(strFArgs, "{2}", archiveContent);
 
   if (!nReplaced)
   {
@@ -292,13 +293,13 @@ void CExternalPlayer::Process()
 
   if (m_hidexbmc && !m_islauncher)
   {
-    CLog::Log(LOGNOTICE, "%s: Hiding XBMC window", __FUNCTION__);
+    CLog::Log(LOGNOTICE, "%s: Hiding %s window", __FUNCTION__, CCompileInfo::GetAppName());
     g_Windowing.Hide();
   }
 #if defined(TARGET_WINDOWS)
   else if (currentStyle & WS_EX_TOPMOST)
   {
-    CLog::Log(LOGNOTICE, "%s: Lowering XBMC window", __FUNCTION__);
+    CLog::Log(LOGNOTICE, "%s: Lowering %s window", __FUNCTION__, CCompileInfo::GetAppName());
     SetWindowPos(g_hWnd,HWND_BOTTOM,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOREDRAW);
   }
 
@@ -310,11 +311,19 @@ void CExternalPlayer::Process()
 
   /* Suspend AE temporarily so exclusive or hog-mode sinks */
   /* don't block external player's access to audio device  */
-  if (!CAEFactory::Suspend())
+  CAEFactory::Suspend();
+  // wait for AE has completed suspended
+  XbmcThreads::EndTime timer(2000);
+  while (!timer.IsTimePast() && !CAEFactory::IsSuspended())
   {
-    CLog::Log(LOGNOTICE,"%s: Failed to suspend AudioEngine before launching external player", __FUNCTION__);
+    Sleep(50);
+  }
+  if (timer.IsTimePast())
+  {
+    CLog::Log(LOGERROR,"%s: AudioEngine did not suspend before launching external player", __FUNCTION__);
   }
 
+  m_callback.OnPlayBackStarted();
 
   BOOL ret = TRUE;
 #if defined(TARGET_WINDOWS)
@@ -330,7 +339,7 @@ void CExternalPlayer::Process()
   {
     if (m_hidexbmc)
     {
-      CLog::Log(LOGNOTICE, "%s: XBMC cannot stay hidden for a launcher process", __FUNCTION__);
+      CLog::Log(LOGNOTICE, "%s: %s cannot stay hidden for a launcher process", __FUNCTION__, CCompileInfo::GetAppName());
       g_Windowing.Show(false);
     }
 
@@ -354,14 +363,14 @@ void CExternalPlayer::Process()
 
   if (currentStyle & WS_EX_TOPMOST)
   {
-    CLog::Log(LOGNOTICE, "%s: Showing XBMC window TOPMOST", __FUNCTION__);
+    CLog::Log(LOGNOTICE, "%s: Showing %s window TOPMOST", __FUNCTION__, CCompileInfo::GetAppName());
     SetWindowPos(g_hWnd,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW);
     SetForegroundWindow(g_hWnd);
   }
   else
 #endif
   {
-    CLog::Log(LOGNOTICE, "%s: Showing XBMC window", __FUNCTION__);
+    CLog::Log(LOGNOTICE, "%s: Showing %s window", __FUNCTION__, CCompileInfo::GetAppName());
     g_Windowing.Show();
   }
 
@@ -407,13 +416,13 @@ BOOL CExternalPlayer::ExecuteAppW32(const char* strPath, const char* strSwitches
   si.dwFlags = STARTF_USESHOWWINDOW;
   si.wShowWindow = m_hideconsole ? SW_HIDE : SW_SHOW;
 
-  CStdStringW WstrPath, WstrSwitches;
+  std::wstring WstrPath, WstrSwitches;
   g_charsetConverter.utf8ToW(strPath, WstrPath);
   g_charsetConverter.utf8ToW(strSwitches, WstrSwitches);
 
   if (m_bAbortRequest) return false;
 
-  BOOL ret = CreateProcessW(WstrPath.IsEmpty() ? NULL : WstrPath.c_str(),
+  BOOL ret = CreateProcessW(WstrPath.empty() ? NULL : WstrPath.c_str(),
                             (LPWSTR) WstrSwitches.c_str(), NULL, NULL, FALSE, NULL,
                             NULL, NULL, &si, &m_processInfo);
 
@@ -527,21 +536,21 @@ bool CExternalPlayer::CanSeek()
   return false;
 }
 
-void CExternalPlayer::Seek(bool bPlus, bool bLargeStep)
+void CExternalPlayer::Seek(bool bPlus, bool bLargeStep, bool bChapterOverride)
 {
 }
 
-void CExternalPlayer::GetAudioInfo(CStdString& strAudioInfo)
+void CExternalPlayer::GetAudioInfo(std::string& strAudioInfo)
 {
   strAudioInfo = "CExternalPlayer:GetAudioInfo";
 }
 
-void CExternalPlayer::GetVideoInfo(CStdString& strVideoInfo)
+void CExternalPlayer::GetVideoInfo(std::string& strVideoInfo)
 {
   strVideoInfo = "CExternalPlayer:GetVideoInfo";
 }
 
-void CExternalPlayer::GetGeneralInfo(CStdString& strGeneralInfo)
+void CExternalPlayer::GetGeneralInfo(std::string& strGeneralInfo)
 {
   strGeneralInfo = "CExternalPlayer:GetGeneralInfo";
 }
@@ -614,12 +623,12 @@ void CExternalPlayer::ShowOSD(bool bOnoff)
 {
 }
 
-CStdString CExternalPlayer::GetPlayerState()
+std::string CExternalPlayer::GetPlayerState()
 {
   return "";
 }
 
-bool CExternalPlayer::SetPlayerState(CStdString state)
+bool CExternalPlayer::SetPlayerState(const std::string& state)
 {
   return true;
 }
@@ -633,7 +642,7 @@ bool CExternalPlayer::Initialize(TiXmlElement* pConfig)
   }
   else
   {
-    CStdString xml;
+    std::string xml;
     xml<<*pConfig;
     CLog::Log(LOGERROR, "ExternalPlayer Error: filename element missing from: %s", xml.c_str());
     return false;
@@ -647,7 +656,7 @@ bool CExternalPlayer::Initialize(TiXmlElement* pConfig)
   {
 #ifdef TARGET_WINDOWS
     // Default depends on whether player is a batch file
-    m_hideconsole = m_filename.Right(4) == ".bat";
+    m_hideconsole = StringUtils::EndsWith(m_filename, ".bat");
 #endif
   }
 
@@ -655,7 +664,7 @@ bool CExternalPlayer::Initialize(TiXmlElement* pConfig)
   if (XMLUtils::GetBoolean(pConfig, "hidecursor", bHideCursor) && bHideCursor)
     m_warpcursor = WARP_BOTTOM_RIGHT;
 
-  CStdString warpCursor;
+  std::string warpCursor;
   if (XMLUtils::GetString(pConfig, "warpcursor", warpCursor) && !warpCursor.empty())
   {
     if (warpCursor == "bottomright") m_warpcursor = WARP_BOTTOM_RIGHT;
@@ -694,7 +703,7 @@ bool CExternalPlayer::Initialize(TiXmlElement* pConfig)
 }
 
 void CExternalPlayer::GetCustomRegexpReplacers(TiXmlElement *pRootElement,
-                                               CStdStringArray& settings)
+                                               std::vector<std::string>& settings)
 {
   int iAction = 0; // overwrite
   // for backward compatibility
@@ -725,24 +734,24 @@ void CExternalPlayer::GetCustomRegexpReplacers(TiXmlElement *pRootElement,
       bool bGlobal = szGlobal && stricmp(szGlobal, "true") == 0;
       bool bStop = szStop && stricmp(szStop, "true") == 0;
 
-      CStdString strMatch;
-      CStdString strPat;
-      CStdString strRep;
+      std::string strMatch;
+      std::string strPat;
+      std::string strRep;
       XMLUtils::GetString(pReplacer,"match",strMatch);
       XMLUtils::GetString(pReplacer,"pat",strPat);
       XMLUtils::GetString(pReplacer,"rep",strRep);
 
-      if (!strPat.IsEmpty() && !strRep.IsEmpty())
+      if (!strPat.empty() && !strRep.empty())
       {
         CLog::Log(LOGDEBUG,"  Registering replacer:");
         CLog::Log(LOGDEBUG,"    Match:[%s] Pattern:[%s] Replacement:[%s]", strMatch.c_str(), strPat.c_str(), strRep.c_str());
         CLog::Log(LOGDEBUG,"    Global:[%s] Stop:[%s]", bGlobal?"true":"false", bStop?"true":"false");
         // keep literal commas since we use comma as a seperator
-        strMatch.Replace(",",",,");
-        strPat.Replace(",",",,");
-        strRep.Replace(",",",,");
+        StringUtils::Replace(strMatch, ",",",,");
+        StringUtils::Replace(strPat, ",",",,");
+        StringUtils::Replace(strRep, ",",",,");
 
-        CStdString strReplacer = strMatch + " , " + strPat + " , " + strRep + " , " + (bGlobal ? "g" : "") + (bStop ? "s" : "");
+        std::string strReplacer = strMatch + " , " + strPat + " , " + strRep + " , " + (bGlobal ? "g" : "") + (bStop ? "s" : "");
         if (iAction == 2)
           settings.insert(settings.begin() + i++, 1, strReplacer);
         else
@@ -751,7 +760,7 @@ void CExternalPlayer::GetCustomRegexpReplacers(TiXmlElement *pRootElement,
       else
       {
         // error message about missing tag
-        if (strPat.IsEmpty())
+        if (strPat.empty())
           CLog::Log(LOGERROR,"  Missing <Pat> tag");
         else
           CLog::Log(LOGERROR,"  Missing <Rep> tag");

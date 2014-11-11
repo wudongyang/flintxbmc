@@ -101,11 +101,6 @@ DllLoader::DllLoader(const char *sDll, bool bTrack, bool bSystemDll, bool bLoadS
   if (m_bSystemDll)
     hModule = (HMODULE)this;
 
-  if (stricmp(sDll, "special://xbmcbin/system/python/python24.dll")==0 ||
-      strstr(sDll, ".pyd") != NULL)
-  {
-    m_bLoadSymbols=true;
-  }
 }
 
 DllLoader::~DllLoader()
@@ -149,7 +144,7 @@ int DllLoader::Parse()
 {
   int iResult = 0;
 
-  CStdString strFileName= GetFileName();
+  std::string strFileName= GetFileName();
   FILE* fp = fopen_utf8(CSpecialProtocol::TranslatePath(strFileName).c_str(), "rb");
 
   if (fp)
@@ -295,9 +290,9 @@ int DllLoader::ResolveImports(void)
             Imp->Name_RVA != 0 ||
             Imp->ImportAddressTable_RVA != 0)
     {
-      char *Name = (char*)RVA2Data(Imp->Name_RVA);
+      const char *Name = (const char*)RVA2Data(Imp->Name_RVA);
 
-      char* FileName=ResolveReferencedDll(Name);
+      const char* FileName=ResolveReferencedDll(Name);
       //  If possible use the dll name WITH path to resolve exports. We could have loaded
       //  a dll with the same name as another dll but from a different directory
       if (FileName) Name=FileName;
@@ -355,7 +350,7 @@ int DllLoader::ResolveImports(void)
   return bResult;
 }
 
-char* DllLoader::ResolveReferencedDll(char* dll)
+const char* DllLoader::ResolveReferencedDll(const char* dll)
 {
   DllLoader* pDll = (DllLoader*) DllLoaderContainer::LoadModule(dll, GetPath(), m_bLoadSymbols);
 
@@ -416,7 +411,7 @@ int DllLoader::ResolveExport(const char *sName, void **pAddr, bool logging)
     return 1;
   }
 
-  char* sDllName = strrchr(GetFileName(), '\\');
+  const char* sDllName = strrchr(GetFileName(), '\\');
   if (sDllName) sDllName += 1;
   else sDllName = GetFileName();
 
@@ -439,7 +434,7 @@ int DllLoader::ResolveOrdinal(unsigned long ordinal, void **pAddr)
     return 1;
   }
 
-  char* sDllName = strrchr(GetFileName(), '\\');
+  const char* sDllName = strrchr(GetFileName(), '\\');
   if (sDllName) sDllName += 1;
   else sDllName = GetFileName();
 
@@ -501,7 +496,7 @@ Export* DllLoader::GetExportByFunctionName(const char* sFunctionName)
   return NULL;
 }
 
-int DllLoader::ResolveOrdinal(char *sName, unsigned long ordinal, void **fixup)
+int DllLoader::ResolveOrdinal(const char *sName, unsigned long ordinal, void **fixup)
 {
   DllLoader* pDll = (DllLoader*) DllLoaderContainer::GetModule(sName);
 
@@ -522,7 +517,7 @@ int DllLoader::ResolveOrdinal(char *sName, unsigned long ordinal, void **fixup)
   return 0;
 }
 
-int DllLoader::ResolveName(char *sName, char* sFunction, void **fixup)
+int DllLoader::ResolveName(const char *sName, char* sFunction, void **fixup)
 {
   DllLoader* pDll = (DllLoader*) DllLoaderContainer::GetModule(sName);
 
@@ -822,7 +817,7 @@ void DllLoader::UnloadSymbols()
 
       try
       {
-        CStdStringW strNameW;
+        std::wstring strNameW;
         g_charsetConverter.utf8ToW(GetName(), strNameW);
 
         // Get the address of the global struct g_dmi
@@ -835,8 +830,8 @@ void DllLoader::UnloadSymbols()
         //  Search for the dll we are unloading...
         while (entry)
         {
-          CStdStringW baseName=(wchar_t*)((LDR_DATA_TABLE_ENTRY*)entry)->BaseDllName.Buffer;
-          if (baseName.Equals(strNameW))
+          std::wstring baseName=(wchar_t*)((LDR_DATA_TABLE_ENTRY*)entry)->BaseDllName.Buffer;
+          if (baseName == strNameW)
           {
             // ...and remove it from the LoadedModuleList and free its memory.
             LIST_ENTRY* back=entry->Blink;

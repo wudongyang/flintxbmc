@@ -25,6 +25,7 @@ $(PLATFORM): $(TARBALLS_LOCATION)/$(ARCHIVE) $(DEPS)
 	cd $(PLATFORM); patch -p1 < ../Imaging-1.1.7-access.patch
 	cd $(PLATFORM); patch -p0 < ../Imaging-1.1.7-zip-include.patch
 	cd $(PLATFORM); patch -p0 < ../Imaging-1.1.7-remove-zlib-check.patch
+	cd $(PLATFORM); patch -p1 < ../Imaging-1.1.7-bz2-link.patch
 	cd $(PLATFORM); sed -ie "s|"darwin"|"darwinNot"|g" "setup.py"
 
 $(LIBDYLIB): $(PLATFORM)
@@ -33,7 +34,7 @@ $(LIBDYLIB): $(PLATFORM)
 
 .installed-$(PLATFORM): $(LIBDYLIB)
 	mkdir -p $(PREFIX)/lib/python2.6/site-packages/PIL
-	unzip $(LIBDYLIB) -d $(PREFIX)/lib/python2.6/site-packages/PIL/
+	unzip -oq $(LIBDYLIB) -d $(PREFIX)/lib/python2.6/site-packages/PIL/
 	echo 'PIL' > $(PREFIX)/lib/python2.6/site-packages/PIL.pth
 	touch $@
 

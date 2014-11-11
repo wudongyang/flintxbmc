@@ -21,7 +21,7 @@
 
 #include "system.h"
 
-#include "Interfaces/AESink.h"
+#include "cores/AudioEngine/Interfaces/AESink.h"
 #include <stdint.h>
 
 class CAESinkProfiler : public IAESink
@@ -34,12 +34,10 @@ public:
 
   virtual bool Initialize  (AEAudioFormat &format, std::string &device);
   virtual void Deinitialize();
-  virtual bool IsCompatible(const AEAudioFormat &format, const std::string &device);
 
-  virtual double       GetDelay        ();
-  virtual double       GetCacheTime    () { return 0.0; }
+  virtual void         GetDelay        (AEDelayStatus& status);
   virtual double       GetCacheTotal   () { return 0.0; }
-  virtual unsigned int AddPackets      (uint8_t *data, unsigned int frames, bool hasAudio, bool blocking = false);
+  virtual unsigned int AddPackets      (uint8_t **data, unsigned int frames, unsigned int offset);
   virtual void         Drain           ();
   static void          EnumerateDevices(AEDeviceList &devices, bool passthrough);
 private:

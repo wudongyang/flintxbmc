@@ -691,6 +691,11 @@ bool CURL::IsLocalHost() const
           m_strHostName == "127.0.0.1");
 }
 
+bool CURL::IsSmb() const
+{
+  return m_strProtocol == "smb";
+}
+
 bool CURL::IsFileOnly(const std::string &url)
 {
   return url.find_first_of("/\\") == std::string::npos;

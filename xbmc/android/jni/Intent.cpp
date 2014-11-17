@@ -65,6 +65,20 @@ int CJNIIntent::getIntExtra(const std::string &name, int defaultValue) const
     jcast<jhstring>(name), defaultValue);
 }
 
+std::string CJNIIntent::getStringExtra(const std::string &name) const
+{
+  return jcast<std::string>(call_method<jhstring>(m_object,
+    "getStringExtra", "(Ljava/lang/String;)Ljava/lang/String;",
+    jcast<jhstring>(name)));
+}
+
+void CJNIIntent::putExtra(const std::string &name,const std::string &value)
+{
+  call_method<jhobject>(m_object,
+    "putExtra", "(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;",
+    jcast<jhstring>(name),jcast<jhstring>(value));
+}
+
 bool CJNIIntent::hasExtra(const std::string &name) const
 {
   return call_method<jboolean>(m_object,

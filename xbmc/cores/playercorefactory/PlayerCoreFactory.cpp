@@ -258,6 +258,21 @@ void CPlayerCoreFactory::GetRemotePlayers( VECPLAYERCORES &vecCores ) const
   }
 }
 
+bool CPlayerCoreFactory::IsUpnpPlayer(PLAYERCOREID playerID) const
+{
+  playerID = playerID - 1;
+  if (playerID < m_vecCoreConfigs.size())
+  {
+    return (m_vecCoreConfigs[playerID]->m_eCore == EPC_UPNPPLAYER);
+  }
+  else
+  {
+    //CLog::Log(LOGERROR, "CPlayerCoreFactory::IsUpnpPlayer,playerID out of range!");
+    
+    return false;
+  }
+}
+
 PLAYERCOREID CPlayerCoreFactory::GetDefaultPlayer( const CFileItem& item ) const
 {
   VECPLAYERCORES vecCores;

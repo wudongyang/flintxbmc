@@ -50,6 +50,11 @@
 #include "peripherals/Peripherals.h"
 #include "powermanagement/PowerManager.h"
 
+#include "video/VideoDatabase.h"
+#include "utils/StringUtils.h"
+#include "matchstick/GUIDialogMatchStick.h"
+
+
 #ifdef TARGET_WINDOWS
 #include "WIN32Util.h"
 #define CHalManager CWIN32Util
@@ -320,6 +325,92 @@ void CApplicationMessenger::ProcessMessage(ThreadMessage *pMsg)
         if (pMsg->lpVoid && pMsg->param2 == 0)
         {
           CFileItem *item = (CFileItem *)pMsg->lpVoid;
+          CStdString progressTrackingFile = "";
+          if (!item->IsLiveTV())
+          {
+            progressTrackingFile = item->GetPath();
+            if (item->HasVideoInfoTag() && StringUtils::StartsWith(item->GetVideoInfoTag()->m_strFileNameAndPath, "removable://"))
+            {
+              progressTrackingFile = item->GetVideoInfoTag()->m_strFileNameAndPath;
+            }
+            else if (item->HasProperty("original_listitem_url") && URIUtils::IsPlugin(item->GetProperty("original_listitem_url").asString()))
+            {
+              progressTrackingFile = item->GetProperty("original_listitem_url").asString();
+            }
+          }
+          if (progressTrackingFile != "")
+          {
+            CBookmark bookmark;
+            int startOffset = 0;
+            int partNumber = 0;
+
+            CVideoDatabase db;
+            if (db.Open())
+            {
+              if (db.GetResumeBookMark(progressTrackingFile, bookmark))
+              {
+                startOffset = (int)(bookmark.timeInSeconds*75);
+                partNumber = bookmark.partNumber;
+              }
+              db.Close();
+            }
+            if (startOffset > 0)
+            {
+              CStdString resumeString;
+              resumeString = StringUtils::Format(g_localizeStrings.Get(12022).c_str(), StringUtils::SecondsToTimeString(startOffset/75).c_str());
+              if (partNumber > 0)
+              {
+                CStdString partString;
+                partString = StringUtils::Format(g_localizeStrings.Get(23051).c_str(), partNumber);
+                resumeString += " (" + partString + ")";
+              }
+              CContextButtons choices;
+              choices.Add(1, resumeString);
+              choices.Add(2, 12021);
+              int value = CGUIDialogContextMenu::ShowAndGetChoice(choices);
+              if (value < 0)
+              {
+                CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+                if (pMatchStick && pMatchStick->IsResumeMatchStick())
+                {
+                  CVideoDatabase videodatabase;
+                  if (!videodatabase.Open())
+                  {
+                    CLog::Log(LOGWARNING, "%s - Unable to open video database. Can not save file state!", __FUNCTION__);
+                  }
+                  else
+                  {
+                    videodatabase.ClearBookMarksOfFile(item->GetPath(), CBookmark::RESUME);
+                    videodatabase.Close();
+                  }
+                  pMatchStick->ResumeMatchStick(false);
+                }
+                return;
+              }
+              else if (value == 1)
+              {
+                item->m_lStartOffset = STARTOFFSET_RESUME;
+              }
+              else if (value == 2)
+              {
+                CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+                if (pMatchStick && pMatchStick->IsResumeMatchStick())
+                {
+                  CVideoDatabase videodatabase;
+                  if (!videodatabase.Open())
+                  {
+                    CLog::Log(LOGWARNING, "%s - Unable to open video database. Can not save file state!", __FUNCTION__);
+                  }
+                  else
+                  {
+                    videodatabase.ClearBookMarksOfFile(item->GetPath(), CBookmark::RESUME);
+                    videodatabase.Close();
+                  }
+                  pMatchStick->ResumeMatchStick(false);
+                }
+              }
+            }
+          }
           g_application.PlayFile(*item, pMsg->param1 != 0);
           delete item;
           return;
@@ -583,10 +674,116 @@ void CApplicationMessenger::ProcessMessage(ThreadMessage *pMsg)
       break;
 
     case TMSG_PLAYLISTPLAYER_PLAY:
-      if (pMsg->param1 != -1)
-        g_playlistPlayer.Play(pMsg->param1);
-      else
-        g_playlistPlayer.Play();
+      {
+        CFileItemPtr item;
+        if (pMsg->param1 != (unsigned int) -1)
+        {
+          item = g_playlistPlayer.GetPlaylist(g_playlistPlayer.GetCurrentPlaylist())[pMsg->param1];
+        }
+        else
+        {
+          item = g_playlistPlayer.GetPlaylist(g_playlistPlayer.GetCurrentPlaylist())[0];
+        }
+        if (!item)
+        {
+          return;
+        }
+        CStdString progressTrackingFile = "";
+        if (item->IsInternetStream() && !item->IsLiveTV())
+        {
+          progressTrackingFile = item->GetPath();
+          if (item->HasVideoInfoTag() && StringUtils::StartsWith(item->GetVideoInfoTag()->m_strFileNameAndPath, "removable://"))
+          {
+            progressTrackingFile = item->GetVideoInfoTag()->m_strFileNameAndPath;
+          }
+          else if (item->HasProperty("original_listitem_url") && URIUtils::IsPlugin(item->GetProperty("original_listitem_url").asString()))
+          {
+            progressTrackingFile = item->GetProperty("original_listitem_url").asString();
+          }
+        }
+        if (progressTrackingFile != "")
+        {
+          CBookmark bookmark;
+          int startOffset = 0;
+          int partNumber = 0;
+
+          CVideoDatabase db;
+          if (db.Open())
+          {
+            if (db.GetResumeBookMark(progressTrackingFile, bookmark))
+            {
+              startOffset = (int)(bookmark.timeInSeconds*75);
+              partNumber = bookmark.partNumber;
+            }
+            db.Close();
+          }
+          if (startOffset > 0)
+          {
+            CStdString resumeString;
+            resumeString = StringUtils::Format(g_localizeStrings.Get(12022).c_str(), StringUtils::SecondsToTimeString(startOffset/75).c_str());
+            if (partNumber > 0)
+            {
+              CStdString partString;
+              partString = StringUtils::Format(g_localizeStrings.Get(23051).c_str(), partNumber);
+              resumeString += " (" + partString + ")";
+            }
+            CContextButtons choices;
+            choices.Add(1, resumeString);
+            choices.Add(2, 12021);
+            int value = CGUIDialogContextMenu::ShowAndGetChoice(choices);
+            if (value < 0)
+            {
+              CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+              if (pMatchStick && pMatchStick->IsResumeMatchStick())
+              {
+                CVideoDatabase videodatabase;
+                if (!videodatabase.Open())
+                {
+                  CLog::Log(LOGWARNING, "%s - Unable to open video database. Can not save file state!", __FUNCTION__);
+                }
+                else
+                {
+                  videodatabase.ClearBookMarksOfFile(progressTrackingFile, CBookmark::RESUME);
+                  videodatabase.Close();
+                }
+                pMatchStick->ResumeMatchStick(false);
+              }
+              return;
+            }
+            else if (value == 1)
+            {
+              item->m_lStartOffset = STARTOFFSET_RESUME;
+              CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+              if (pMatchStick)
+              {
+                pMatchStick->ResumeMatchStick(false);
+              }
+            }
+            else if (value == 2)
+            {
+              CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+              if (pMatchStick && pMatchStick->IsResumeMatchStick())
+              {
+                CVideoDatabase videodatabase;
+                if (!videodatabase.Open())
+                {
+                  CLog::Log(LOGWARNING, "%s - Unable to open video database. Can not save file state!", __FUNCTION__);
+                }
+                else
+                {
+                  videodatabase.ClearBookMarksOfFile(progressTrackingFile, CBookmark::RESUME);
+                  videodatabase.Close();
+                }
+                pMatchStick->ResumeMatchStick(false);
+              }
+            }
+          }
+        }
+        if (pMsg->param1 != (unsigned int) -1)
+          g_playlistPlayer.Play(pMsg->param1);
+        else
+          g_playlistPlayer.Play();
+      }
       break;
 
     case TMSG_PLAYLISTPLAYER_PLAY_SONG_ID:

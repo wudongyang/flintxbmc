@@ -11,8 +11,8 @@
 				<height>561</height>
 				<onleft>2</onleft>
 				<onright>60</onright>
-				<onup>550</onup>
-				<ondown>550</ondown>
+				<onup>80000</onup>
+				<ondown>-</ondown>
 				<viewtype label="$LOCALIZE[31033]">info</viewtype>
 				<visible>Window.IsVisible(AddonBrowser) | Container.Content(Addons)</visible>
 				<pagecontrol>60</pagecontrol>
@@ -254,8 +254,8 @@
 				<height>558</height>
 				<onleft>2</onleft>
 				<onright>60</onright>
-				<onup>551</onup>
-				<ondown>551</ondown>
+				<onup>80000</onup>
+				<ondown>-</ondown>
 				<viewtype label="$LOCALIZE[31033] 2">biginfo</viewtype>
 				<visible>Window.IsVisible(AddonBrowser) | Container.Content(Addons)</visible>
 				<pagecontrol>60</pagecontrol>

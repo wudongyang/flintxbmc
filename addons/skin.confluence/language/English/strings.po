@@ -697,3 +697,11 @@ msgstr ""
 msgctxt "#31960"
 msgid "RADIO"
 msgstr ""
+
+msgctxt "#31961"
+msgid "Connected"
+msgstr "Connected"
+
+msgctxt "#31962"
+msgid "Please enable UPnP Server."
+msgstr "Please enable UPnP Server."

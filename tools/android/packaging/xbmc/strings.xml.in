@@ -3,5 +3,7 @@
 
     <string name="hello">bruhahaha</string>
     <string name="app_name">@APP_NAME@</string>
+    <string name="wifi_enable_toast_note">WiFi未启用, 请启用WiFi</string>
+    <string name="player_return">返回</string>
 
 </resources>

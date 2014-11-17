@@ -88,6 +88,9 @@
 #include "cores/VideoRenderers/BaseRenderer.h"
 #include "interfaces/info/InfoExpression.h"
 
+#include "matchstick/GUIDialogMatchStick.h"
+#include "matchstick/AutoUpdateMatchStick.h"
+
 #if defined(TARGET_DARWIN_OSX)
 #include "osx/smc.h"
 #include "linux/LinuxResourceCounter.h"
@@ -225,6 +228,15 @@ const infomap player_times[] =   {{ "seektime",         PLAYER_SEEKTIME },
                                   { "duration",         PLAYER_DURATION },
                                   { "finishtime",       PLAYER_FINISH_TIME },
                                   { "starttime",        PLAYER_START_TIME}};
+
+const infomap matchstick[] =     {{ "time",                MATCHSTICK_PLAYER_TIME},
+                                  { "duration",            MATCHSTICK_PLAYER_DURATION},
+                                  { "isplaying",           MATCHSTICK_PLAYER_ISPALYING},
+                                  { "progress",            MATCHSTICK_PLAYER_PROGRESS},
+                                  { "hasdevice",           MATCHSTICK_HAS_DEVICE},
+                                  { "isconnected",         MATCHSTICK_IS_CONNECTED},
+                                  { "ismatchstickplayer",  MATCHSTICK_IS_MATCHSTICK_PLAYER},
+                                  { "isupnpplayer",        MATCHSTICK_IS_UPNP_PLAYER},};
 
 const infomap weather[] =        {{ "isfetched",        WEATHER_IS_FETCHED },
                                   { "conditions",       WEATHER_CONDITIONS },         // labels from here
@@ -903,6 +915,14 @@ int CGUIInfoManager::TranslateSingleString(const CStdString &strCondition, bool 
         }
       }
     }
+    else if (cat.name == "matchstick")
+    {
+      for (size_t i = 0; i < sizeof(matchstick) / sizeof(infomap); i++)
+      {
+        if (prop.name == matchstick[i].str)
+          return matchstick[i].val;
+      }
+    }
     else if (cat.name == "weather")
     {
       for (size_t i = 0; i < sizeof(weather) / sizeof(infomap); i++)
@@ -1556,6 +1576,18 @@ CStdString CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *f
       }
     }
     break;
+  case MATCHSTICK_PLAYER_TIME:
+    {
+      CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+      if (pMatchStick)   return pMatchStick->GetCurrentTime();
+    }
+    break;
+  case MATCHSTICK_PLAYER_DURATION:
+    {
+      CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+      if (pMatchStick)     return pMatchStick->GetDurationTime();
+    }
+    break;
   case MUSICPLAYER_TITLE:
   case MUSICPLAYER_ALBUM:
   case MUSICPLAYER_ARTIST:
@@ -2127,6 +2159,22 @@ bool CGUIInfoManager::GetInt(int &value, int info, int contextWindow, const CGUI
         }
       }
       return true;
+    case MATCHSTICK_PLAYER_PROGRESS:
+      {
+        CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+        if (pMatchStick)
+        {
+          if (pMatchStick->IsCastPlayerRunning())
+          { 
+            value = (int)pMatchStick->GetPercentage();
+          }
+          else
+          {
+            value = (int)(g_application.GetPercentage());
+          }
+        }
+      }    
+      return true;
     case SYSTEM_FREE_MEMORY:
     case SYSTEM_USED_MEMORY:
       {
@@ -2474,6 +2522,35 @@ bool CGUIInfoManager::GetBool(int condition1, int contextWindow, const CGUIListI
   {
     CGUIWindowSlideShow *slideShow = (CGUIWindowSlideShow *)g_windowManager.GetWindow(WINDOW_SLIDESHOW);
     bReturn = (slideShow && slideShow->InSlideShow());
+  }
+  else if(condition == MATCHSTICK_PLAYER_ISPALYING)
+  {
+    CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+    if (pMatchStick)   return pMatchStick->IsPlaying();
+  }
+  else if(condition == MATCHSTICK_HAS_DEVICE)
+  {
+    return g_AutoUpdateMatchStick.HasDevice();
+  }
+  else if(condition == MATCHSTICK_IS_CONNECTED)
+  {
+    CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+    if (pMatchStick)   return pMatchStick->IsConnected();
+  }
+  else if(condition == MATCHSTICK_IS_MATCHSTICK_PLAYER)
+  {
+    CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+    if (pMatchStick)   return pMatchStick->IsCastPlayerRunning();
+  }
+  else if (condition == MATCHSTICK_IS_UPNP_PLAYER)
+  {
+    bool isUpnpPlaying = CPlayerCoreFactory::Get().IsUpnpPlayer(g_application.m_pPlayer->GetCurrentPlayer());
+    CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+    if (pMatchStick)
+    {
+      bool isCastPlaying = pMatchStick->IsCastPlayerRunning();
+      return isUpnpPlaying && !isCastPlaying;
+    }
   }
   else if (condition == SLIDESHOW_ISVIDEO)
   {

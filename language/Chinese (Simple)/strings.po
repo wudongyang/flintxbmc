@@ -12844,3 +12844,11 @@ msgstr "900"
 msgctxt "#37030"
 msgid "Unlimited"
 msgstr "无限制"
+
+msgctxt "#70072"
+msgid "Notifications"
+msgstr "提示"
+
+msgctxt "#70159"
+msgid " Disconnect %s ?"
+msgstr "确定断开 %s ？"

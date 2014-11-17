@@ -8,7 +8,7 @@
 		<top>0</top>
 	</coordinates>
 	<controls>
-		<control type="group">
+		<control type="group" id="80001">
 			<left>360</left>
 			<animation effect="slide" start="700,0" end="0,0" time="400" tween="quadratic" easing="out" condition="![Window.IsVisible(MovieInformation) | Window.IsVisible(MusicInformation)]">WindowOpen</animation>
 			<animation effect="slide" start="-180,0" end="0,0" time="400" tween="quadratic" easing="out" condition="[Window.IsVisible(MovieInformation) | Window.IsVisible(MusicInformation)]">WindowOpen</animation>
@@ -349,6 +349,7 @@
 				</control>
 			</control>
 		</control>
+		<include>Matchstick</include>
 		<include>Clock</include>
 	</controls>
 </window>

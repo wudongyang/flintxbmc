@@ -20,7 +20,7 @@
 			<onclick>FullScreen</onclick>
 			<texturefocus>DialogCloseButton-focus.png</texturefocus>
 			<texturenofocus>DialogCloseButton.png</texturenofocus>
-			<onleft>1000</onleft>
+			<onleft>256</onleft>
 			<onright>1000</onright>
 			<onup>100</onup>
 			<ondown>100</ondown>
@@ -61,8 +61,8 @@
 				<texturenofocus>OSDPrevTrackNF.png</texturenofocus>
 				<onleft>254</onleft>
 				<onright>201</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Previous)</onclick>
 			</control>
 			<control type="button" id="201">
@@ -76,8 +76,8 @@
 				<texturenofocus>OSDRewindNF.png</texturenofocus>
 				<onleft>200</onleft>
 				<onright>202</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Rewind)</onclick>
 			</control>
 			<control type="togglebutton" id="202">
@@ -95,8 +95,8 @@
 				<alttexturenofocus>OSDPlayNF.png</alttexturenofocus>
 				<onleft>201</onleft>
 				<onright>203</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Play)</onclick>
 			</control>
 			<control type="button" id="203">
@@ -110,8 +110,8 @@
 				<texturenofocus>OSDStopNF.png</texturenofocus>
 				<onleft>202</onleft>
 				<onright>204</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Stop)</onclick>
 			</control>
 			<control type="button" id="204">
@@ -125,8 +125,8 @@
 				<texturenofocus>OSDForwardNF.png</texturenofocus>
 				<onleft>203</onleft>
 				<onright>205</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Forward)</onclick>
 			</control>
 			<control type="button" id="205">
@@ -140,8 +140,8 @@
 				<texturenofocus>OSDNextTrackNF.png</texturenofocus>
 				<onleft>204</onleft>
 				<onright>255</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Next)</onclick>
 			</control>
 		</control>
@@ -165,8 +165,8 @@
 				<texturenofocus>OSDChannelUPNF.png</texturenofocus>
 				<onleft>353</onleft>
 				<onright>301</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Previous)</onclick>
 			</control>
 			<control type="button" id="301">
@@ -180,8 +180,8 @@
 				<texturenofocus>OSDChannelDownNF.png</texturenofocus>
 				<onleft>300</onleft>
 				<onright>302</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Next)</onclick>
 			</control>
 			<control type="button" id="302">
@@ -195,8 +195,8 @@
 				<texturenofocus>OSDRewindNF.png</texturenofocus>
 				<onleft>301</onleft>
 				<onright>303</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Rewind)</onclick>
 				<enable>Player.SeekEnabled</enable>
 				<animation effect="fade" start="100" end="50" time="100" condition="!Player.SeekEnabled">Conditional</animation>
@@ -216,8 +216,8 @@
 				<alttexturenofocus>OSDPlayNF.png</alttexturenofocus>
 				<onleft>302</onleft>
 				<onright>304</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Play)</onclick>
 				<enable>Player.PauseEnabled</enable>
 				<animation effect="fade" start="100" end="50" time="100" condition="!Player.PauseEnabled">Conditional</animation>
@@ -233,8 +233,8 @@
 				<texturenofocus>OSDStopNF.png</texturenofocus>
 				<onleft>303</onleft>
 				<onright>305</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Stop)</onclick>
 			</control>
 			<control type="button" id="305">
@@ -248,8 +248,8 @@
 				<texturenofocus>OSDForwardNF.png</texturenofocus>
 				<onleft>304</onleft>
 				<onright>306</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Forward)</onclick>
 				<enable>Player.SeekEnabled</enable>
 				<animation effect="fade" start="100" end="50" time="100" condition="!Player.SeekEnabled">Conditional</animation>
@@ -265,8 +265,8 @@
 				<texturenofocus>OSDChannelListNF.png</texturenofocus>
 				<onleft>305</onleft>
 				<onright>307</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>ActivateWindow(PVROSDChannels)</onclick>
 				<onclick>Dialog.Close(VideoOSD)</onclick>
 			</control>
@@ -281,8 +281,8 @@
 				<texturenofocus>OSDepgNF.png</texturenofocus>
 				<onleft>306</onleft>
 				<onright>354</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>ActivateWindow(PVROSDGuide)</onclick>
 				<onclick>Dialog.Close(VideoOSD)</onclick>
 			</control>
@@ -308,7 +308,7 @@
 				<onleft>205</onleft>
 				<onright>250</onright>
 				<onup>501</onup>
-				<ondown>1000</ondown>
+				<ondown>256</ondown>
 			</control>
 			<control type="button" id="250">
 				<left>55</left>
@@ -322,7 +322,7 @@
 				<onleft>255</onleft>
 				<onright>251</onright>
 				<onup>404</onup>
-				<ondown>1000</ondown>
+				<ondown>256</ondown>
 			</control>
 			<control type="button" id="251">
 				<left>110</left>
@@ -335,8 +335,8 @@
 				<texturenofocus>OSDVideoNF.png</texturenofocus>
 				<onleft>250</onleft>
 				<onright>252</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>ActivateWindow(OSDVideoSettings)</onclick>
 			</control>
 			<control type="button" id="252">
@@ -350,8 +350,8 @@
 				<texturenofocus>OSDAudioNF.png</texturenofocus>
 				<onleft>251</onleft>
 				<onright>253</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>ActivateWindow(OSDAudioSettings)</onclick>
 			</control>
 			<control type="button" id="253">
@@ -365,8 +365,8 @@
 				<texturenofocus>OSDBookmarksNF.png</texturenofocus>
 				<onleft>252</onleft>
 				<onright>254</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>ActivateWindow(VideoBookmarks)</onclick>
 			</control>
 			<control type="button" id="254">
@@ -380,8 +380,8 @@
 				<texturenofocus>OSDDvdNF.png</texturenofocus>
 				<onleft>253</onleft>
 				<onright>200</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(ShowVideoMenu)</onclick>
 				<enable>VideoPlayer.HasMenu</enable>
 				<animation effect="fade" start="100" end="50" time="100" condition="!VideoPlayer.HasMenu">Conditional</animation>
@@ -408,7 +408,7 @@
 				<onleft>307</onleft>
 				<onright>350</onright>
 				<onup>551</onup>
-				<ondown>1000</ondown>
+				<ondown>256</ondown>
 			</control>
 			<control type="button" id="350">
 				<left>55</left>
@@ -421,8 +421,8 @@
 				<texturenofocus>OSDTeleTextNF.png</texturenofocus>
 				<onleft>354</onleft>
 				<onright>351</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>ActivateWindow(Teletext)</onclick>
 			</control>
 			<control type="button" id="351">
@@ -436,8 +436,8 @@
 				<texturenofocus>OSDVideoNF.png</texturenofocus>
 				<onleft>350</onleft>
 				<onright>352</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>ActivateWindow(OSDVideoSettings)</onclick>
 			</control>
 			<control type="button" id="352">
@@ -451,8 +451,8 @@
 				<texturenofocus>OSDAudioNF.png</texturenofocus>
 				<onleft>351</onleft>
 				<onright>353</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>ActivateWindow(OSDAudioSettings)</onclick>
 			</control>
 			<control type="togglebutton" id="353">
@@ -470,8 +470,8 @@
 				<alttexturenofocus>OSDRecordOnNF.png</alttexturenofocus>
 				<onleft>352</onleft>
 				<onright>300</onright>
-				<onup>1000</onup>
-				<ondown>1000</ondown>
+				<onup>256</onup>
+				<ondown>256</ondown>
 				<onclick>PlayerControl(Record)</onclick>
 				<enable>Player.CanRecord</enable>
 				<animation effect="fade" start="100" end="50" time="100" condition="!Player.CanRecord">Conditional</animation>
@@ -792,6 +792,24 @@
 				<height>52</height>
 				<texture border="20,0,20,50">SubMenuBack-Footer.png</texture>
 			</control>
+		</control>
+		<control type="togglebutton" id="256">
+			<onleft>256</onleft>
+			<onright>256</onright>
+			<onup>100</onup>
+			<ondown>100</ondown>
+			<description>Matchstick device icon</description>
+			<visible>matchstick.hasdevice</visible>
+			<posx>230r</posx>
+			<posy>0</posy>
+			<width>41</width>
+			<height>41</height>
+			<texturefocus>Matchstick_disconnectFO.png</texturefocus>
+			<texturenofocus>Matchstick_disconnectNF.png</texturenofocus>
+			<usealttexture>matchstick.isconnected</usealttexture>
+			<alttexturefocus>Matchstick_connectFO.png</alttexturefocus>
+			<alttexturenofocus>Matchstick_connectNF.png</alttexturenofocus>
+			<animation effect="slide" start="0,0" end="-40,0" time="100" condition="Window.IsVisible(Mutebug)">conditional</animation>
 		</control>
 	</controls>
 </window>

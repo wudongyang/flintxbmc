@@ -423,6 +423,7 @@
 				<visible>!IsEmpty(Container.FolderName)</visible>
 			</control>
 		</control>
+		<include>Matchstick</include>
 		<include>Clock</include>
 	</controls>
 </window>

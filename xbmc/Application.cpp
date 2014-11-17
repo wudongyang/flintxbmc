@@ -351,6 +351,9 @@
 
 #include "cores/FFmpeg.h"
 
+#include "matchstick/GUIDialogMatchStick.h"
+#include "matchstick/AutoUpdateMatchStick.h"
+
 using namespace std;
 using namespace ADDON;
 using namespace XFILE;
@@ -875,6 +878,8 @@ bool CApplication::Create()
   CUtil::InitRandomSeed();
 
   g_mediaManager.Initialize();
+  
+  g_AutoUpdateMatchStick.Run();
 
   m_lastFrameTime = XbmcThreads::SystemClockMillis();
   m_lastRenderTime = m_lastFrameTime;
@@ -1351,6 +1356,7 @@ bool CApplication::Initialize()
     g_windowManager.Add(new CGUIWindowSettingsScreenCalibration);
     g_windowManager.Add(new CGUIWindowSettingsCategory);
     g_windowManager.Add(new CGUIWindowVideoNav);
+    g_windowManager.Add(new CGUIMatchStick);
     g_windowManager.Add(new CGUIWindowVideoPlaylist);
     g_windowManager.Add(new CGUIWindowLoginScreen);
     g_windowManager.Add(new CGUIWindowSettingsProfile);
@@ -3318,6 +3324,7 @@ bool CApplication::Cleanup()
     g_windowManager.Delete(WINDOW_DIALOG_GAMEPAD);
     g_windowManager.Delete(WINDOW_DIALOG_SUB_MENU);
     g_windowManager.Delete(WINDOW_DIALOG_BUTTON_MENU);
+    g_windowManager.Delete(WINDOW_DIALOG_MATCHSTICK);
     g_windowManager.Delete(WINDOW_DIALOG_CONTEXT_MENU);
     g_windowManager.Delete(WINDOW_DIALOG_PLAYER_CONTROLS);
     g_windowManager.Delete(WINDOW_DIALOG_KARAOKE_SONGSELECT);
@@ -3990,6 +3997,31 @@ PlayBackRet CApplication::PlayFile(const CFileItem& item, bool bRestart)
 
       dbs.Close();
     }
+    
+    bool isUpnpPlaying    = CPlayerCoreFactory::Get().IsUpnpPlayer(m_pPlayer->GetCurrentPlayer());
+    CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+    if (pMatchStick)
+    {
+      if(!isUpnpPlaying && pMatchStick->IsConnected())
+      {      
+        CFileItem item   = g_application.CurrentFileItem();
+        string videoName = item.GetProperty("title").asString();
+        if (videoName == "")
+        {
+          videoName = item.GetLabel();
+        }
+        if (videoName == "")
+        {
+          videoName = "matchsticktestvideo";
+        }
+        string videoUrl  = item.GetPath();
+
+        pMatchStick->ShowMatchStickDialog(g_application.CurrentFileItem());
+        pMatchStick->ResetResumeBookmark();
+
+        return PLAYBACK_OK;
+      }
+    }
 
     if (m_eForcedNextPlayer != EPC_NONE)
       eNewCore = m_eForcedNextPlayer;
@@ -4423,6 +4455,11 @@ void CApplication::UpdateFileState()
           // Do nothing
           m_progressTrackingVideoResumeBookmark.timeInSeconds = 0.0f;
         }
+        CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+        if (pMatchStick)
+        {
+          pMatchStick->UpdateResumeBookmark(m_progressTrackingVideoResumeBookmark);
+        }
       }
     }
   }
@@ -4454,15 +4491,13 @@ void CApplication::StopPlaying()
 #endif
 
     m_pPlayer->CloseFile();
-
-    // turn off visualisation window when stopping
-    if ((iWin == WINDOW_VISUALISATION
-    ||  iWin == WINDOW_FULLSCREEN_VIDEO)
-    && !m_bStop)
-      g_windowManager.PreviousWindow();
-
     g_partyModeManager.Disable();
   }
+  // turn off visualisation window when stopping
+  if ((iWin == WINDOW_VISUALISATION
+    ||  iWin == WINDOW_FULLSCREEN_VIDEO)
+    && !m_bStop)
+    g_windowManager.PreviousWindow();
 }
 
 void CApplication::ResetSystemIdleTimer()

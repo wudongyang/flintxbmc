@@ -74,7 +74,7 @@ public:
   void GetPlayers( VECPLAYERCORES &vecCores ) const;                         //All players
 
   void GetRemotePlayers( VECPLAYERCORES &vecCores ) const;                   //All remote players we can attach to
-
+  bool IsUpnpPlayer(PLAYERCOREID playerID) const;
   PLAYERCOREID GetDefaultPlayer( const CFileItem& item ) const;
 
   PLAYERCOREID SelectPlayerDialog(const VECPLAYERCORES &vecCores, float posX = 0, float posY = 0) const;

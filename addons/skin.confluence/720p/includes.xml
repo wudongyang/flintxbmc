@@ -222,7 +222,7 @@
 	</include>
 	<include name="CommonNowPlaying">
 		<control type="group">
-			<visible>Player.HasMedia + !SubString(Window(videolibrary).Property(TvTunesIsAlive),TRUE)</visible>
+			<visible>matchstick.ismatchstickplayer | [matchstick.isupnpplayer + Player.HasMedia] | [Player.HasMedia + !SubString(Window(videolibrary).Property(TvTunesIsAlive),TRUE)]</visible>
 			<include>VisibleFadeEffect</include>
 			<animation effect="fade" time="250" condition="Window.Previous(Home)">WindowOpen</animation>
 			<animation effect="fade" time="250" condition="Window.Next(Home)">WindowClose</animation>
@@ -234,7 +234,8 @@
 				<height>45</height>
 				<label>31003</label>
 				<font>-</font>
-				<onclick>ActivateWindow(PlayerControls)</onclick>
+				<onclick condition="!matchstick.ismatchstickplayer + !matchstick.isupnpplayer">ActivateWindow(PlayerControls)</onclick>
+				<onclick condition="matchstick.ismatchstickplayer | matchstick.isupnpplayer">MatchStickShowDialog</onclick>
 				<texturefocus border="5">floor_buttonFO.png</texturefocus>
 				<texturenofocus border="5">floor_button.png</texturenofocus>
 				<onleft>50</onleft>
@@ -925,6 +926,25 @@
 				<textcolor>white</textcolor>
 				<font>font30_title</font>
 			</control>
+		</control>
+	</include>
+	<include name="Matchstick">
+		<control type="togglebutton" id="80000">
+			<onup>80000</onup>
+			<ondown>80001</ondown>
+			<description>Matchstick device icon</description>
+			<visible>matchstick.hasdevice</visible>
+			<posx>230r</posx>
+			<posy>0</posy>
+			<width>41</width>
+			<height>41</height>
+			<texturefocus>Matchstick_disconnectFO.png</texturefocus>
+			<texturenofocus>Matchstick_disconnectNF.png</texturenofocus>
+			<usealttexture>matchstick.isconnected</usealttexture>
+			<alttexturefocus>Matchstick_connectFO.png</alttexturefocus>
+			<alttexturenofocus>Matchstick_connectNF.png</alttexturenofocus>
+			<onclick>matchstickshowdevicelist</onclick>
+			<animation effect="slide" start="0,0" end="-40,0" time="100" condition="Window.IsVisible(Mutebug)">conditional</animation>
 		</control>
 	</include>
 	<include name="Clock">

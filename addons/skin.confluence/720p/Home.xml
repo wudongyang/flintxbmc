@@ -5,6 +5,7 @@
 	<onunload condition="Container(9000).Hasfocus(10) | Container(9000).Hasfocus(11) | ControlGroup(9010).HasFocus | ControlGroup(9016).HasFocus | ControlGroup(9017).HasFocus">SetProperty(VideosDirectLink,True)</onunload>
 	<onunload condition="Control.HasFocus(9000) + Container(9000).Hasfocus(2)">ClearProperty(VideosDirectLink)</onunload>
 	<controls>
+		<control type="group" id="80001">
 		<include>CommonBackground</include>
 		<control type="image">
 			<left>0</left>
@@ -449,7 +450,7 @@
 			<texturenofocus>-</texturenofocus>
 			<onleft>9000</onleft>
 			<onright>9000</onright>
-			<onup>20</onup>
+			<onup>80000</onup>
 			<ondown>608</ondown>
 			<visible>false</visible>
 		</control>
@@ -501,7 +502,7 @@
 				<textureradiooffnofocus>icon_search.png</textureradiooffnofocus>
 				<onleft>607</onleft>
 				<onright>601</onright>
-				<onup>9003</onup>
+				<onup>80000</onup>
 				<ondown>9000</ondown>
 				<visible>System.HasAddon(script.globalsearch)</visible>
 			</control>
@@ -563,7 +564,7 @@
 						<alttexturenofocus>OSDPlayNF.png</alttexturenofocus>
 						<onleft>602</onleft>
 						<onright>604</onright>
-						<onup>9003</onup>
+						<onup>80000</onup>
 						<ondown>9000</ondown>
 						<onclick>PlayerControl(Play)</onclick>
 					</control>
@@ -1088,7 +1089,7 @@
 				<onleft>21</onleft>
 				<onright>21</onright>
 				<onup>9002</onup>
-				<ondown>9003</ondown>
+				<ondown>20</ondown>
 			</control>
 			<control type="image">
 				<description>Power Icon</description>
@@ -1113,7 +1114,7 @@
 				<onleft>20</onleft>
 				<onright>20</onright>
 				<onup>9002</onup>
-				<ondown>9003</ondown>
+				<ondown>21</ondown>
 			</control>
 			<control type="image">
 				<description>Favourites Icon</description>
@@ -1194,6 +1195,8 @@
 				</control>
 			</control>
 		</control>
+		</control>
+		<include>Matchstick</include>
 		<include>Clock</include>
 		<control type="label">
 			<description>Date label</description>

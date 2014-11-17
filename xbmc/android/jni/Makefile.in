@@ -50,6 +50,7 @@ SRCS      += View.cpp
 SRCS      += Window.cpp
 SRCS      += Build.cpp
 SRCS      += KeyCharacterMap.cpp
+SRCS      += MatchStickApi.cpp
 
 LIB        = jni.a
 

@@ -18,7 +18,7 @@
  *
  */
 #pragma once
-#include <Platinum/Source/Devices/MediaConnect/PltMediaConnect.h>
+#include "../../../lib/libUPnP/Platinum/Source/Devices/MediaConnect/PltMediaConnect.h"
 
 #include "interfaces/IAnnouncer.h"
 #include "FileItem.h"

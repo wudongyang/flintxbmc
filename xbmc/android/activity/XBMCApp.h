@@ -33,6 +33,8 @@
 #include "android/jni/Context.h"
 #include "android/jni/BroadcastReceiver.h"
 #include "threads/Event.h"
+#include "utils/JobManager.h"
+#include "utils/StringUtils.h"
 
 // forward delares
 class CJNIWakeLock;
@@ -103,6 +105,10 @@ public:
   static void SetSystemVolume(int val);
 
   static int GetDPI();
+  
+  static bool SendBroadcast(const std::string &msgAction,const std::string &msgKeyName,const std::string &msgContent);
+  static bool SendBroadcastInBg(const std::string &msgAction,const std::string &msgKeyName,const std::string &msgContent);
+  static std::string matchstickMsg;
 protected:
   // limit who can access Volume
   friend class CAESinkAUDIOTRACK;
@@ -134,4 +140,25 @@ private:
   void XBMC_Stop();
   bool XBMC_DestroyDisplay();
   bool XBMC_SetupDisplay();
+private:
+    class CSendBroadcastJob : public CJob
+    {
+    public:
+        CSendBroadcastJob(const std::string &msgAction,const std::string &msgKeyName,const std::string &msgContent) 
+        {
+            m_msgAction = msgAction;
+            m_msgKeyName = msgKeyName;
+            m_msgContent = msgContent;
+        }
+
+        virtual bool DoWork()
+        {
+            return SendBroadcast(m_msgAction, m_msgKeyName, m_msgContent);
+        }
+
+    private:
+        CStdString m_msgAction;
+        CStdString m_msgKeyName;
+        CStdString m_msgContent;
+    };
 };

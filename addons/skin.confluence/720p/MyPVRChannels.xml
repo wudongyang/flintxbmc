@@ -430,6 +430,7 @@
 		</control>
 
 		<include>PVRSideBlade</include>
+		<include>Matchstick</include>
 		<include>Clock</include>
 	</controls>
 </window>

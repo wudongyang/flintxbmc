@@ -16082,3 +16082,11 @@ msgstr ""
 msgctxt "#38010"
 msgid "GPU accelerated"
 msgstr ""
+
+msgctxt "#70072"
+msgid "Notifications"
+msgstr ""
+
+msgctxt "#70159"
+msgid " Disconnect %s ?"
+msgstr ""

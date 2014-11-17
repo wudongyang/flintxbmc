@@ -11,8 +11,8 @@
 				<height>561</height>
 				<onleft>2</onleft>
 				<onright>60</onright>
-				<onup>506</onup>
-				<ondown>506</ondown>
+				<onup>80000</onup>
+				<ondown>-</ondown>
 				<viewtype label="$LOCALIZE[544]">list</viewtype>
 				<pagecontrol>60</pagecontrol>
 				<scrolltime>200</scrolltime>

@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window type="dialog">
+	<defaultcontrol always="true">400</defaultcontrol>
+	<animation effect="fade" time="200">WindowOpen</animation>
+	<!--animation effect="rotate" start="0" end="90" center="0,720" time="0" condition="true">WindowOpen</animation-->
+	<animation effect="fade" time="200">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>0</posx>
+		<posy>0</posy>
+		<width>1280</width>
+		<height>720</height>
+	</coordinates>
+	<controls>
+		<control type="image">
+			<description>background image</description>
+			<posx>0</posx>
+			<posy>0</posy>
+			<width>1280</width>
+			<height>720</height>
+			<texture border="20">MatchstickBackground.png</texture>
+		</control>
+		<control type="group" id="100">
+			<posx>50</posx>
+			<posy>0</posy>
+			<control type="button" id="101">
+				<description>Back button</description>
+				<posx>0</posx>
+				<posy>0</posy>
+				<width>65</width>
+				<height>65</height>
+				<font>-</font>
+				<texturefocus>MatchstickBackFO.png</texturefocus>
+				<texturenofocus>MatchstickBackNF.png</texturenofocus>
+				<textcolor>white</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<onclick>back</onclick>
+				<onleft>101</onleft>
+				<onright>102</onright>
+				<onup>101</onup>
+				<ondown>400</ondown>
+			</control>
+			<control type="label">
+				<description>device name</description>
+				<posx>150</posx>
+				<posy>10</posy>
+				<width>880</width>
+				<height>40</height>
+				<font>font30</font>
+				<label>$INFO[window.property(deviceName),, $LOCALIZE[31960]]</label>
+				<textcolor>grey</textcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+			</control>
+			<control type="button" id="102">
+				<description>Disconnect button</description>
+				<posx>115r</posx>
+				<posy>0</posy>
+				<width>65</width>
+				<height>65</height>
+				<font>-</font>
+				<texturefocus>MatchstickCloseFO.png</texturefocus>
+				<texturenofocus>MatchstickCloseNF.png</texturenofocus>
+				<textcolor>white</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<onleft>101</onleft>
+				<onright>102</onright>
+				<onup>102</onup>
+				<ondown>400</ondown>
+			</control>
+		</control>
+		<control type="group" id="200">
+			<posx>50</posx>
+			<posy>200</posy>
+			<control type="label">
+				<description>Playing</description>
+				<posx>0</posx>
+				<posy>0</posy>
+				<width>200</width>
+				<height>50</height>
+				<align>left</align>
+				<aligny>center</aligny>
+				<label>$LOCALIZE[31040]</label>
+				<font>font35_title</font>
+			</control>
+			<control type="label" id="1">
+				<description>Title Info label(Matchstick)</description>
+				<visible>matchstick.ismatchstickplayer</visible>
+				<posx>200</posx>
+				<posy>5</posy>
+				<width min="10" max="980">auto</width>
+				<height>40</height>
+				<font>font45caps_title</font>
+				<align>left</align>
+				<aligny>center</aligny>
+				<label>$INFO[window.property(videoName)]</label>
+				<textcolor>ffffa500</textcolor>
+				<scroll>true</scroll>
+			</control>
+			<control type="label" id="1">
+				<description>Title Info label(Upnp)</description>
+				<visible>matchstick.isupnpplayer</visible>
+				<posx>200</posx>
+				<posy>5</posy>
+				<width min="10" max="980">auto</width>
+				<height>40</height>
+				<font>font45caps_title</font>
+				<align>left</align>
+				<aligny>center</aligny>
+				<label>$INFO[Player.Title]</label>
+				<textcolor>ffffa500</textcolor>
+				<scroll>true</scroll>
+			</control>
+		</control>
+		<control type="group" id="300">
+			<posx>50</posx>
+			<posy>570</posy>
+			<control type="image">
+				<description>progress background image</description>
+				<posx>-50</posx>
+				<posy>0</posy>
+				<width>1280</width>
+				<height>178</height>
+				<texture border="20">MatchstickProgressBg.png</texture>
+			</control>
+			<control type="progress">
+				<description>Matchstick Progress bar(Matchstick)</description>
+				<visible>matchstick.ismatchstickplayer</visible>
+				<posx>0</posx>
+				<posy>60</posy>
+				<width>1180</width>
+				<height>5</height>
+				<info>matchstick.progress</info>
+			</control>
+			<control type="progress">
+				<description>Progress bar(UPNP)</description>
+				<visible>matchstick.isupnpplayer</visible>
+				<posx>0</posx>
+				<posy>60</posy>
+				<width>1180</width>
+				<height>5</height>
+				<info>player.progress</info>
+			</control>
+			<control type="slider" id="301">
+				<description>Seek Slider</description>
+				<visible>matchstick.ismatchstickplayer | matchstick.isupnpplayer</visible>
+				<posx>0</posx>
+				<posy>42</posy>
+				<width>1180</width>
+				<height>16</height>
+				<!--rotate>90</rotate-->
+				<onleft>301</onleft>
+				<onright>301</onright>
+				<onup>400</onup>
+				<ondown>301</ondown>
+				<action>matchstickseek</action>
+				<texturesliderbar>seekslider2.png</texturesliderbar>
+				<textureslidernib>osd_slider_nibNF2.png</textureslidernib>
+				<textureslidernibfocus>osd_slider_nib2.png</textureslidernibfocus>
+				<animation effect="fade" time="200">VisibleChange</animation>
+				<visible>true</visible>
+			</control>
+			<control type="label">
+				<description>Elapsed Time Label(Matchstick)</description>
+				<visible>matchstick.ismatchstickplayer</visible>
+				<posx>0</posx>
+				<posy>80</posy>
+				<width>150</width>
+				<height>60</height>
+				<font>font30</font>
+				<align>left</align>
+				<aligny>center</aligny>
+				<label>$INFO[matchstick.time(hh:mm:ss)]</label>
+			</control>
+			<control type="label">
+				<description>Elapsed Time Label(UPNP)</description>
+				<visible>matchstick.isupnpplayer</visible>
+				<posx>0</posx>
+				<posy>80</posy>
+				<width>150</width>
+				<height>60</height>
+				<font>font30</font>
+				<align>left</align>
+				<aligny>center</aligny>
+				<label>$INFO[VideoPlayer.Time]</label>
+			</control>
+			<control type="label">
+				<description>FinishTime(Matchstick)</description>
+				<visible>matchstick.ismatchstickplayer</visible>
+				<posx>1180</posx>
+				<posy>80</posy>
+				<width>150</width>
+				<height>60</height>
+				<font>font30</font>
+				<align>right</align>
+				<aligny>center</aligny>
+				<label>$INFO[matchstick.duration(hh:mm:ss)]</label>
+			</control>
+			<control type="label">
+				<description>FinishTime(UPNP)</description>
+				<visible>matchstick.isupnpplayer</visible>
+				<posx>1180</posx>
+				<posy>80</posy>
+				<width>150</width>
+				<height>60</height>
+				<font>font30</font>
+				<align>right</align>
+				<aligny>center</aligny>
+				<label>$INFO[VideoPlayer.Duration]</label>
+			</control>
+		</control>
+		<control type="group" id="400">
+			<posx>50</posx>
+			<posy>350</posy>
+			<defaultcontrol>405</defaultcontrol>
+			<control type="button" id="401">
+				<description>Rewind</description>
+				<posx>0</posx>
+				<posy>0</posy>
+				<width>128</width>
+				<height>116</height>
+				<texturefocus>MatchstickRewindFO.png</texturefocus>
+				<texturenofocus>MatchstickRewindNF.png</texturenofocus>
+				<onleft>404</onleft>
+				<onright>405</onright>
+				<onup>100</onup>
+				<ondown>301</ondown>
+			</control>
+			<control type="button" id="402">
+				<description>Forward</description>
+				<posx>300</posx>
+				<posy>0</posy>
+				<width>128</width>
+				<height>116</height>
+				<texturefocus>MatchstickForwardFO.png</texturefocus>
+				<texturenofocus>MatchstickForwardNF.png</texturenofocus>
+				<onleft>405</onleft>
+				<onright>403</onright>
+				<onup>100</onup>
+				<ondown>301</ondown>
+			</control>
+			<control type="button" id="403">
+				<description>Volume Down</description>
+				<enable>matchstick.ismatchstickplayer</enable>
+				<posx>900</posx>
+				<posy>0</posy>
+				<width>128</width>
+				<height>116</height>
+				<texturefocus>MatchstickVolumeDownFO.png</texturefocus>
+				<texturenofocus>MatchstickVolumeDownNF.png</texturenofocus>
+				<onleft>402</onleft>
+				<onright>404</onright>
+				<onup>100</onup>
+				<ondown>301</ondown>
+			</control>
+			<control type="button" id="404">
+				<description>Volume Up</description>
+				<enable>matchstick.ismatchstickplayer</enable>
+				<posx>1050</posx>
+				<posy>0</posy>
+				<width>128</width>
+				<height>116</height>
+				<label>210</label>
+				<font>-</font>
+				<texturefocus>MatchstickVolumeUpFO.png</texturefocus>
+				<texturenofocus>MatchstickVolumeUpNF.png</texturenofocus>
+				<onleft>403</onleft>
+				<onright>401</onright>
+				<onup>100</onup>
+				<ondown>301</ondown>
+			</control>
+			<control type="togglebutton" id="405">
+				<description>Play/Pause</description>
+				<posx>150</posx>
+				<posy>0</posy>
+				<width>128</width>
+				<height>116</height>
+				<texturefocus>MatchstickPauseFO.png</texturefocus>
+				<texturenofocus>MatchstickPauseNF.png</texturenofocus>
+				<usealttexture>!matchstick.isplaying</usealttexture>
+				<alttexturefocus>MatchstickPlayFO.png</alttexturefocus>
+				<alttexturenofocus>MatchstickPlayNF.png</alttexturenofocus>
+				<onleft>401</onleft>
+				<onright>402</onright>
+				<onup>100</onup>
+				<ondown>301</ondown>
+			</control>
+			
+		</control>
+	</controls>
+</window>

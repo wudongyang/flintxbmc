@@ -90,7 +90,7 @@ int CXBMCApp::m_batteryLevel = 0;
 int CXBMCApp::m_initialVolume = 0;
 CCriticalSection CXBMCApp::m_applicationsMutex;
 std::vector<androidPackage> CXBMCApp::m_applications;
-
+std::string CXBMCApp::matchstickMsg="";
 
 CXBMCApp::CXBMCApp(ANativeActivity* nativeActivity)
   : CJNIContext(nativeActivity)
@@ -449,6 +449,20 @@ bool CXBMCApp::StartActivity(const string &package, const string &intent, const 
   }
 
   return true;
+}
+
+bool CXBMCApp::SendBroadcast(const std::string &msgAction,const std::string &msgKeyName,const std::string &msgContent){
+    CJNIIntent newIntent=CJNIIntent("");
+    newIntent.setAction(msgAction);
+    newIntent.putExtra(msgKeyName, msgContent);
+    sendBroadcast(newIntent);
+    return true;
+}
+
+bool CXBMCApp::SendBroadcastInBg(const std::string &msgAction,const std::string &msgKeyName,const std::string &msgContent){
+    CSendBroadcastJob* job=new CSendBroadcastJob(msgAction,msgKeyName,msgContent);
+    CJobManager::GetInstance().AddJob(job, NULL);
+    return true;
 }
 
 int CXBMCApp::GetBatteryLevel()

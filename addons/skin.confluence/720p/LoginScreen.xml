@@ -212,6 +212,7 @@
 				</control>
 			</control>
 		</control>
+		<include>Matchstick</include>
 		<include>Clock</include>
 		<control type="label">
 			<description>Date label</description>

@@ -104,7 +104,7 @@
 #define WINDOW_DIALOG_EXT_PROGRESS        10151
 #define WINDOW_DIALOG_MEDIA_FILTER        10152
 #define WINDOW_DIALOG_SUBTITLES           10153
-
+#define WINDOW_DIALOG_MATCHSTICK          10158
 #define WINDOW_MUSIC_PLAYLIST             10500
 #define WINDOW_MUSIC_FILES                10501
 #define WINDOW_MUSIC_NAV                  10502

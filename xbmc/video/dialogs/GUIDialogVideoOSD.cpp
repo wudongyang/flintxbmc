@@ -29,6 +29,16 @@
 
 #include "pvr/PVRManager.h"
 #include "pvr/channels/PVRChannelGroupsContainer.h"
+#if defined(TARGET_ANDROID)
+#include "android/jni/MatchStickApi.h"
+#endif
+#include "utils/XMLUtils.h"
+#include "dialogs/GUIDialogSelect.h"
+#include "../dialogs/GUIDialogKaiToast.h"
+#include "../dialogs/GUIDialogBusy.h"
+#include "../matchstick/GUIDialogMatchStick.h"
+#include "../matchstick/AutoUpdateMatchStick.h"
+#define BTN_PLAY_IN_MATCHSTICK 256
 
 using namespace PVR;
 
@@ -90,6 +100,31 @@ bool CGUIDialogVideoOSD::OnMessage(CGUIMessage& message)
 {
   switch ( message.GetMessage() )
   {
+  case GUI_MSG_CLICKED:
+    {
+      int iControl = message.GetSenderId();
+      if (iControl == BTN_PLAY_IN_MATCHSTICK)
+      {
+        CFileItem item   = g_application.CurrentFileItem();
+        string videoName = item.GetProperty("title").asString();
+        if (videoName == "")
+        {
+          videoName = item.GetLabel();
+        }
+        if (videoName == "")
+        {
+          videoName = "matchsticktestvideo";
+        }
+        string videoUrl  = item.GetPath();
+        
+        CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+        if (pMatchStick)
+        {
+          pMatchStick->ShowMatchStickDialog(g_application.CurrentFileItem());
+        }
+      }
+    }
+    break;
   case GUI_MSG_VIDEO_MENU_STARTED:
     {
       // We have gone to the DVD menu, so close the OSD.

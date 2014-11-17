@@ -103,6 +103,7 @@ DIRECTORY_ARCHIVES=$(DVDPLAYER_ARCHIVES) \
                    xbmc/windowing/windowing.a \
                    xbmc/windows/windows.a \
                    xbmc/xbmc.a \
+                   xbmc/matchstick/matchstick.a \
 
 NWAOBJSXBMC=	xbmc/threads/threads.a \
 		xbmc/commons/commons.a

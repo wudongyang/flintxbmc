@@ -11,8 +11,8 @@
 				<height>561</height>
 				<onleft>2</onleft>
 				<onright>60</onright>
-				<onup>50</onup>
-				<ondown>50</ondown>
+				<onup>80000</onup>
+				<ondown>-</ondown>
 				<viewtype label="535">list</viewtype>
 				<pagecontrol>60</pagecontrol>
 				<scrolltime>200</scrolltime>
@@ -258,8 +258,8 @@
 				<height>558</height>
 				<onleft>2</onleft>
 				<onright>60</onright>
-				<onup>500</onup>
-				<ondown>500</ondown>
+				<onup>80000</onup>
+				<ondown>-</ondown>
 				<viewtype label="21371">list</viewtype>
 				<pagecontrol>60</pagecontrol>
 				<scrolltime>200</scrolltime>
@@ -447,8 +447,8 @@
 				<height>550</height>
 				<onleft>2</onleft>
 				<onright>60</onright>
-				<onup>505</onup>
-				<ondown>505</ondown>
+				<onup>80000</onup>
+				<ondown>-</ondown>
 				<viewtype label="$LOCALIZE[539]">list</viewtype>
 				<pagecontrol>60</pagecontrol>
 				<scrolltime>200</scrolltime>
@@ -523,8 +523,8 @@
 				<height>561</height>
 				<onleft>2</onleft>
 				<onright>60</onright>
-				<onup>51</onup>
-				<ondown>51</ondown>
+				<onup>80000</onup>
+				<ondown>-</ondown>
 				<viewtype label="537">list</viewtype>
 				<pagecontrol>60</pagecontrol>
 				<scrolltime>200</scrolltime>

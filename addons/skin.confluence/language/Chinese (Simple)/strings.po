@@ -607,3 +607,11 @@ msgstr "系统"
 msgctxt "#31960"
 msgid "RADIO"
 msgstr "电台"
+
+msgctxt "#31961"
+msgid "Connected"
+msgstr "已连接"
+
+msgctxt "#31962"
+msgid "Please enable UPnP Server."
+msgstr "请启用UPnP服务."

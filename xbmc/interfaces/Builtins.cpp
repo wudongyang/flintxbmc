@@ -96,6 +96,7 @@
 #include <vector>
 #include "settings/AdvancedSettings.h"
 #include "settings/DisplaySettings.h"
+#include "matchstick/GUIDialogMatchStick.h"
 
 using namespace std;
 using namespace XFILE;
@@ -151,6 +152,9 @@ const BUILT_IN commands[] = {
   { "UnloadSkin",                 false,  "Unload Kodi's skin" },
   { "RefreshRSS",                 false,  "Reload RSS feeds from RSSFeeds.xml"},
   { "PlayerControl",              true,   "Control the music or video player" },
+  { "MatchStickPlayerControl",    true,   "Control the matchstick player" },
+  { "MatchStickShowDeviceList",   false,  "ShowMatchStickList"},
+  { "MatchStickShowDialog",       false,  "ShowMatchStickDialog"},
   { "Playlist.PlayOffset",        true,   "Start playing from a particular offset in the playlist" },
   { "Playlist.Clear",             false,  "Clear the current playlist" },
   { "EjectTray",                  false,  "Close or open the DVD tray" },
@@ -1015,6 +1019,43 @@ int CBuiltins::Execute(const std::string& execString)
       // send messages so now playing window can get updated
       CGUIMessage msg(GUI_MSG_PLAYLISTPLAYER_REPEAT, 0, 0, iPlaylist, (int)state);
       g_windowManager.SendThreadMessage(msg);
+    }
+  }
+  else if (execute == "matchstickplayercontrol")
+  {
+    CStdString offset = "";
+    if (parameter.size() == 21)
+      CLog::Log(LOGERROR,"matchstickplayercontrol(seekpercentage(n)) called with no argument");
+    else if (parameter.size() < 24) // arg must be at least "(N)"
+      CLog::Log(LOGERROR,"matchstickplayercontrol(seekpercentage(n)) called with invalid argument: \"%s\"", parameter.substr(14).c_str());
+    else
+    {
+      // Don't bother checking the argument: an invalid arg will do seek(0)
+      offset = parameter.substr(15);
+      StringUtils::TrimRight(offset, ")");
+      float offsetpercent = (float) atof(offset.c_str());
+      if (0.0001f <= offsetpercent && offsetpercent <= 100.0f)
+      {
+        CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+        if (pMatchStick)   pMatchStick->SeekPercentage(offsetpercent); 
+      }
+    }
+  }
+  else if (execute == "matchstickshowdevicelist")
+  {
+    CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+    if (pMatchStick)
+    {
+      int choice = pMatchStick->ShowMatchStickList();
+      pMatchStick->ConnectDevice(choice);
+    }
+  } 
+  else if (execute == "matchstickshowdialog")
+  {
+    CGUIMatchStick* pMatchStick = (CGUIMatchStick*)g_windowManager.GetWindow(WINDOW_DIALOG_MATCHSTICK);
+    if (pMatchStick)
+    {
+      pMatchStick->DoModal();
     }
   }
   else if (execute == "playwith")

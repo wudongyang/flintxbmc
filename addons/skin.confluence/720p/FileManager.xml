@@ -22,7 +22,7 @@
 			<aspectratio>keep</aspectratio>
 			<texture>icon_system.png</texture>
 		</control>
-		<control type="grouplist">
+		<control type="grouplist" id="80001">
 			<left>65</left>
 			<top>5</top>
 			<width>1000</width>
@@ -464,6 +464,7 @@
 				<texture>icon_home.png</texture>
 			</control>
 		</control>
+		<include>Matchstick</include>
 		<include>Clock</include>
 	</controls>
 </window>

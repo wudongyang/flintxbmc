@@ -26,6 +26,7 @@
 #include "android/jni/SurfaceTexture.h"
 #include "utils/StringUtils.h"
 #include "CompileInfo.h"
+#include "android/jni/MatchStickApi.h"
 
 // copied from new android_native_app_glue.c
 static void process_input(struct android_app* app, struct android_poll_source* source) {
@@ -121,6 +122,19 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
       (void*)&CJNISurfaceTextureOnFrameAvailableListener::_onFrameAvailable
     };
     env->RegisterNatives(cFrameAvailableListener, &mOnFrameAvailable, 1);
+  }
+  
+  jclass cMatchStickApi = env->FindClass("org/xbmc/kodi/MatchStickApi");
+  if(cMatchStickApi)
+  {
+    JNINativeMethod mOnCallback = {
+      "_onCallback",
+      "(Landroid/content/Intent;)V",
+      (void*)&CJNIMatchStickApi::_onCallback
+    };
+    env->RegisterNatives(cMatchStickApi, &mOnCallback, 1);
+
+    CJNIMatchStickApi::clazz=(jclass)(env->NewGlobalRef(cMatchStickApi));
   }
 
   return version;

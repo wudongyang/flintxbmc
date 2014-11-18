@@ -1,6 +1,6 @@
 # FlingXBMC
 
-FlintXBMC is base on XBMC(Now named Kodi). It integrates the [Flint SDK](http://github.com/openflint/flint-android-sender-sdk), so you can enjoy videos on your TV by any device which has Flint protocol inside, such as [Matchstick](www.matchstick.tv).
+FlintXBMC is base on XBMC(Now named Kodi). It integrates the [Flint SDK](http://github.com/openflint/flint-android-sender-sdk), so you can enjoy videos on your TV by any device which has Flint protocol inside, such as [MatchStick](www.matchstick.tv).
 
 * Right now, only Android is supported.
 
@@ -24,13 +24,18 @@ FlintXBMC is base on XBMC(Now named Kodi). It integrates the [Flint SDK](http://
 
 1. Setup the MatchStick device connected to internet via WiFi by MatchStick Setup App.
 2. Run FlintXBMC and make sure that FlintXBMC is connected the same WiFi as MatchStick device.
-3. Tap the fling icon"![fling icon](https://raw.githubusercontent.com/wudongyang/flintxbmc/master/addons/skin.confluence/media/Matchstick_disconnectFO.png)" on the the FlintXBMC screen. If you can't find it, see the FAQ.
+3. Tap the fling icon"![fling icon](https://raw.githubusercontent.com/wudongyang/flintxbmc/master/addons/skin.confluence/media/Matchstick_disconnectFO.png)" on the FlintXBMC screen. If you can't find it, see the FAQ.
 4. Select a MatchStick device.
 5. Play a video; it should now be playing on your TV.
+
+## Links
+* [MatchStick](http://www.matchstick.tv)
+* [OpenFlint](http://openflint.org/)
 
 ## FAQ
 ### Why do we need Eclipse.
 - Some library resources are required as dependencies for FlintXBMC. They need to be imported as library projects by Eclipse.
+- We can debug the Java codes.
 
 ### Build Error when using Eclipse.
 - Go to Window -> Preferences -> Android -> Lint Error Checking，uncheck “Run full error check when exporting app and abort if fatal errors are found”.

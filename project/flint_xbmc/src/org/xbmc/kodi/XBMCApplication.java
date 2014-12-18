@@ -15,11 +15,11 @@ import android.support.v7.media.MediaRouter;
 import android.support.v7.media.MediaRouter.RouteInfo;
 import android.support.v7.media.MediaRouteSelector;
 
-import tv.matchstick.fling.Fling;
-import tv.matchstick.fling.FlingDevice;
-import tv.matchstick.fling.MediaInfo;
-import tv.matchstick.fling.MediaMetadata;
-import tv.matchstick.fling.MediaStatus;
+import tv.matchstick.flint.Flint;
+import tv.matchstick.flint.FlintDevice;
+import tv.matchstick.flint.MediaInfo;
+import tv.matchstick.flint.MediaMetadata;
+import tv.matchstick.flint.MediaStatus;
 
 public class XBMCApplication extends Application implements
 		IRemotePlayController {
@@ -29,24 +29,13 @@ public class XBMCApplication extends Application implements
 	private WifiManager mWifiManager;
 	public boolean isSearching = true;
 	public String devices = "";
-	public ArrayList<FlingDevice> deviceslist = new ArrayList<FlingDevice>();
-	private FlingDevice mDevice;
+	public ArrayList<FlintDevice> deviceslist = new ArrayList<FlintDevice>();
+	private FlintDevice mDevice;
 	private String appname;
 	private Handler mHandler = new Handler();
-	// private static Context mCContext = null;
-	// private boolean isSessionEstablished = false;
-	// private final static String APP_UUID = "Remote Player";
-	// private final static String PROTO_TYPE = "ramp";
 	private Thread mThread = null;
 	private QueryRunnable mRunnable = null;
 	public boolean queryFlag = false;
-	// private String mContent_id;
-	// private String mContent_name;
-	// private int mVolume = 1;
-	// private int current_time;
-	// private int duration;
-	// private String mTitle = null;
-	// private boolean isStateChanged = false;
 	Intent intent = new Intent();
 	StringBuilder statusBuf = new StringBuilder();
 
@@ -70,11 +59,10 @@ public class XBMCApplication extends Application implements
 		filter = new IntentFilter();
 		filter.addAction(MatchStickApi.ACTION_BROADCAST_CMD);
 		registerReceiver(broadcastReceiver, filter);
-		// mCContext = this.getApplicationContext();
 		MatchStickApi.application = this;
 		FlingHelper.mRemotePlayController = this;
 		APPLICATION_ID = "~flintplayer";
-		Fling.FlingApi.setApplicationId(APPLICATION_ID);
+		Flint.FlintApi.setApplicationId(APPLICATION_ID);
 	}
 
 	public static FlingHelper getCastManager(Context context) {
@@ -92,7 +80,7 @@ public class XBMCApplication extends Application implements
 		if (isConnectedToWifi()) {
 			StringBuilder sbuf = new StringBuilder();
 			for (RouteInfo routeInfo : mFlingHelper.getRouteList()) {
-				FlingDevice device = FlingDevice.getFromBundle(routeInfo
+				FlintDevice device = FlintDevice.getFromBundle(routeInfo
 						.getExtras());
 				sbuf.append("<device");
 				sbuf.append(" macAddr=\"" + device.getDeviceId() + "\"");
@@ -112,9 +100,9 @@ public class XBMCApplication extends Application implements
 	/**
 	 * getDevice
 	 */
-	public FlingDevice getDevice(String deviceName, String deviceMacAddr) {
+	public FlintDevice getDevice(String deviceName, String deviceMacAddr) {
 		for (RouteInfo routeInfo : mFlingHelper.getRouteList()) {
-			FlingDevice device = FlingDevice.getFromBundle(routeInfo
+			FlintDevice device = FlintDevice.getFromBundle(routeInfo
 					.getExtras());
 			if (device.getFriendlyName().equals(deviceName)
 					&& device.getDeviceId().equals(deviceMacAddr)) {
@@ -124,10 +112,6 @@ public class XBMCApplication extends Application implements
 
 		return null;
 	}
-
-	// private boolean containDevice(FlingDevice device) {
-	// return false;
-	// }
 
 	/**
 	 * alert
@@ -187,9 +171,9 @@ public class XBMCApplication extends Application implements
 	/**
 	 * connectDevice
 	 */
-	public boolean connectDevice(FlingDevice castDevice) {
+	public boolean connectDevice(FlintDevice castDevice) {
 		for (RouteInfo routeInfo : mFlingHelper.getRouteList()) {
-			FlingDevice device = FlingDevice.getFromBundle(routeInfo
+			FlintDevice device = FlintDevice.getFromBundle(routeInfo
 					.getExtras());
 			String deviceName = castDevice.getFriendlyName();
 			String deviceMacAddr = castDevice.getDeviceId();
@@ -201,15 +185,6 @@ public class XBMCApplication extends Application implements
 		}
 		return true;
 	}
-
-	/**
-	 * startSession
-	 */
-	// private void startSession(String appname) {
-	// if (appname == null) {
-	// return ;
-	// }
-	// }
 
 	/**
 	 * playFile
@@ -253,16 +228,6 @@ public class XBMCApplication extends Application implements
 	}
 
 	Handler handler = new Handler();
-
-	// private void updateStatus(MediaStatus mStatus) {
-	// Log.d(TAG,"matchstick: updateStatus");
-	// }
-	//
-	// private void refreshPlayState() {
-	// if(!isStateChanged){
-	// return;
-	// }
-	// }
 
 	public void startGetInfo() {
 		queryFlag = true;
@@ -348,15 +313,6 @@ public class XBMCApplication extends Application implements
 	}
 
 	/**
-	 * resetAll
-	 */
-	// private void resetAll() {
-	// setAppname(null);
-	// setDevice(null);
-	// isSessionEstablished = false;
-	// }
-
-	/**
 	 * clearData
 	 */
 	private void clearData() {
@@ -364,11 +320,11 @@ public class XBMCApplication extends Application implements
 		setAppname(null);
 	}
 
-	public FlingDevice getDevice() {
+	public FlintDevice getDevice() {
 		return mDevice;
 	}
 
-	public void setDevice(FlingDevice device) {
+	public void setDevice(FlintDevice device) {
 		this.mDevice = device;
 	}
 

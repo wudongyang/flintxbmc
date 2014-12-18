@@ -3,7 +3,7 @@ package org.xbmc.kodi;
 import android.content.Intent;
 import android.util.Log;
 
-import tv.matchstick.fling.FlingDevice;
+import tv.matchstick.flint.FlintDevice;
 
 public class MatchStickApi {
 	
@@ -27,8 +27,8 @@ public class MatchStickApi {
 	/**
 	 * getDevice
 	 */
-	private static FlingDevice getDevice(String deviceName,String deviceMacAddr){
-		FlingDevice castDevice=application.getDevice(deviceName, deviceMacAddr);
+	private static FlintDevice getDevice(String deviceName,String deviceMacAddr){
+		FlintDevice castDevice=application.getDevice(deviceName, deviceMacAddr);
 		if(castDevice==null){
 			getDeviceList();
 			sleep(500);
@@ -43,7 +43,7 @@ public class MatchStickApi {
 	 */
 	public static String connectDevice(String deviceName,String deviceMacAddr){
 		String rtMsg="";
-		FlingDevice castDevice=getDevice(deviceName, deviceMacAddr);
+		FlintDevice castDevice=getDevice(deviceName, deviceMacAddr);
 		if(castDevice!=null){
 			application.connectDevice(castDevice);
 		}

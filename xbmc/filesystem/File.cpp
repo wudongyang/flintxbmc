@@ -88,7 +88,7 @@ bool CFile::Copy(const CURL& url2, const CURL& dest, XFILE::IFileCallback* pCall
   CURL url(url2);
   if (URIUtils::IsInZIP(url.Get()) || URIUtils::IsInAPK(url.Get()))
     url.SetOptions("?cache=no");
-  if (file.Open(url.Get(), READ_TRUNCATED))
+  if (file.Open(url.Get(), READ_TRUNCATED | READ_CHUNKED))
   {
 
     CFile newFile;
@@ -130,7 +130,7 @@ bool CFile::Copy(const CURL& url2, const CURL& dest, XFILE::IFileCallback* pCall
       return false;
     }
 
-    static const int iBufferSize = 128 * 1024;
+    int iBufferSize = GetChunkSize(file.GetChunkSize(), 128 * 1024);
 
     auto_buffer buffer(iBufferSize);
     ssize_t iRead, iWrite;
@@ -527,6 +527,17 @@ ssize_t CFile::Read(void *lpBuf, size_t uiBufSize)
 
   try
   {
+    if (uiBufSize == 0)
+    { // "test" read with zero size
+      if (lpBuf != NULL)
+        return m_pFile->Read(lpBuf, 0);
+
+      // some VFSs don't handle correctly null buffer pointer
+      // provide valid buffer pointer for them
+      auto_buffer dummyBuf(255);
+      return m_pFile->Read(dummyBuf.get(), 0);
+    }
+
     if(m_flags & READ_TRUNCATED)
     {
       const ssize_t nBytes = m_pFile->Read(lpBuf, uiBufSize);
@@ -752,6 +763,15 @@ ssize_t CFile::Write(const void* lpBuf, size_t uiBufSize)
 
   try
   {
+    if (uiBufSize == 0 && lpBuf == NULL)
+    { // "test" write with zero size
+      // some VFSs don't handle correctly null buffer pointer
+      // provide valid buffer pointer for them
+      auto_buffer dummyBuf(255);
+      dummyBuf.get()[0] = 0;
+      return m_pFile->Write(dummyBuf.get(), 0);
+    }
+
     return m_pFile->Write(lpBuf, uiBufSize);
   }
   XBMCCOMMONS_HANDLE_UNCHECKED

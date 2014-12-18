@@ -1247,7 +1247,7 @@ msgstr "Виводити звук у форматі DTS-HD"
 
 msgctxt "#348"
 msgid "Enable passthrough"
-msgstr "Увімкнути пряме виведення"
+msgstr "Увімкнути пряме виведення звуку"
 
 msgctxt "#349"
 msgid "TrueHD capable receiver"
@@ -2472,6 +2472,10 @@ msgstr "Докладний журнал компонентів UPnP"
 msgctxt "#679"
 msgid "Verbose logging for CEC library"
 msgstr "Докладний журнал бібліотеки CEC"
+
+msgctxt "#680"
+msgid "Verbose logging for VIDEO component"
+msgstr "Докладний журнал підсистеми відео"
 
 msgctxt "#700"
 msgid "Cleaning up library"
@@ -6193,6 +6197,22 @@ msgctxt "#16329"
 msgid "VAAPI Motion Compensated"
 msgstr "VAAPI Motion Compensated"
 
+msgctxt "#16330"
+msgid "MMAL - Advanced"
+msgstr "MMAL — розширен."
+
+msgctxt "#16331"
+msgid "MMAL - Advanced (Half)"
+msgstr "MMAL — розширен. (1 поле)"
+
+msgctxt "#16332"
+msgid "MMAL - Bob"
+msgstr "MMAL  Bob"
+
+msgctxt "#16333"
+msgid "MMAL - Bob (Half)"
+msgstr "MMAL — Bob (1 поле)"
+
 msgctxt "#16400"
 msgid "Post-processing"
 msgstr "Післяобробка"
@@ -7284,10 +7304,6 @@ msgstr "Для використання PVR потрібен тюнер,"
 msgctxt "#19273"
 msgid "Add-on for the backend to be able to use PVR."
 msgstr "Серверна програма й відповідна надбудова PVR."
-
-msgctxt "#19274"
-msgid "Please visit kodi.tv/pvr to learn more."
-msgstr "Додаткова інформація: kodi.tv/pvr."
 
 msgctxt "#19275"
 msgid "Conflict warning"
@@ -10319,7 +10335,7 @@ msgstr "Завантажується: %i%%…"
 
 msgctxt "#24043"
 msgid "Available Updates"
-msgstr "Доступні надбудови"
+msgstr "Доступні оновлення"
 
 msgctxt "#24044"
 msgid "Dependencies not met. Please contact Add-on author."
@@ -10618,8 +10634,12 @@ msgid "Configuration has been moved"
 msgstr "Конфігурацію перенесено"
 
 msgctxt "#24129"
-msgid "The configuration of Kodi has been moved to the new location for Kodi. Please refer to http://kodi.wiki/view/Migration_from_Kodi_to_Kodi - this message will not be shown again!"
-msgstr "Конфігурацію Kodi перенесено на нове місце. Докладніше див. на сторінці http://kodi.wiki/view/Migration_from_Kodi_to_Kodi. Це повідомлення більше не показуватиметься."
+msgid "The configuration of XBMC has been moved to the new location for Kodi. Please refer to http://kodi.wiki/view/Migration - this message will not be shown again!"
+msgstr "Налаштування XBMC переміщено до нової папки Kodi. Див. http://kodi.wiki/view/Migration. Це повідомлення більше не показуватиметься."
+
+msgctxt "#24999"
+msgid "Hide incompatible"
+msgstr "Приховати несумісні"
 
 msgctxt "#25000"
 msgid "Notifications"
@@ -12987,7 +13007,7 @@ msgstr "(Коментарі директорів)"
 
 msgctxt "#37014"
 msgid "Last used profile"
-msgstr "Востаннє зайнятий профіль"
+msgstr "Останній використаний профіль"
 
 msgctxt "#37015"
 msgid "Browse Into"

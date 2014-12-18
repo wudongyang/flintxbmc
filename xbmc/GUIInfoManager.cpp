@@ -60,6 +60,7 @@
 #include "URL.h"
 #include "addons/Skin.h"
 #include "boost/make_shared.hpp"
+#include "cores/DataCacheCore.h"
 
 // stuff for current song
 #include "music/MusicInfoLoader.h"
@@ -127,7 +128,6 @@ CGUIInfoManager::CGUIInfoManager(void) :
   m_playerShowCodec = false;
   m_playerShowInfo = false;
   m_fps = 0.0f;
-  m_AVInfoValid = false;
   ResetLibraryBools();
 }
 
@@ -1663,35 +1663,30 @@ CStdString CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *f
   case VIDEOPLAYER_VIDEO_CODEC:
     if(g_application.m_pPlayer->IsPlaying())
     {
-      UpdateAVInfo();
       strLabel = m_videoInfo.videoCodecName;
     }
     break;
   case VIDEOPLAYER_VIDEO_RESOLUTION:
     if(g_application.m_pPlayer->IsPlaying())
     {
-      UpdateAVInfo();
       return CStreamDetails::VideoDimsToResolutionDescription(m_videoInfo.width, m_videoInfo.height);
     }
     break;
   case VIDEOPLAYER_AUDIO_CODEC:
     if(g_application.m_pPlayer->IsPlaying())
     {
-      UpdateAVInfo();
       strLabel = m_audioInfo.audioCodecName;
     }
     break;
   case VIDEOPLAYER_VIDEO_ASPECT:
     if (g_application.m_pPlayer->IsPlaying())
     {
-      UpdateAVInfo();
       strLabel = CStreamDetails::VideoAspectToAspectDescription(m_videoInfo.videoAspectRatio);
     }
     break;
   case VIDEOPLAYER_AUDIO_CHANNELS:
     if(g_application.m_pPlayer->IsPlaying())
     {
-      UpdateAVInfo();
       strLabel = StringUtils::Format("%i", m_audioInfo.channels);
     }
     break;
@@ -1706,7 +1701,6 @@ CStdString CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *f
   case VIDEOPLAYER_STEREOSCOPIC_MODE:
     if(g_application.m_pPlayer->IsPlaying())
     {
-      UpdateAVInfo();
       strLabel = m_videoInfo.stereoMode;
     }
     break;
@@ -1796,10 +1790,7 @@ CStdString CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *f
       {
         CURL url(((CGUIMediaWindow*)window)->CurrentDirectory().GetPath());
         if (url.IsProtocol("plugin"))
-        {
-          strLabel = url.GetFileName();
-          URIUtils::RemoveSlashAtEnd(strLabel);
-        }
+          strLabel = URIUtils::GetFileName(url.GetHostName());
       }
       break;
     }
@@ -2112,7 +2103,16 @@ bool CGUIInfoManager::GetInt(int &value, int info, int contextWindow, const CGUI
     return GetMultiInfoInt(value, m_multiInfo[info - MULTI_INFO_START], contextWindow);
 
   if (info >= LISTITEM_START && info <= LISTITEM_END)
+  {
+    if (item == NULL)
+    {
+      CGUIWindow *window = GetWindowWithCondition(contextWindow, WINDOW_CONDITION_HAS_LIST_ITEMS); // true for has list items
+      if (window)
+        item = window->GetCurrentListItem().get();
+    }
+
     return GetItemInt(value, item, info);
+  }
 
   value = 0;
   switch( info )
@@ -2729,7 +2729,6 @@ bool CGUIInfoManager::GetBool(int condition1, int contextWindow, const CGUIListI
     case VIDEOPLAYER_IS_STEREOSCOPIC:
       if(g_application.m_pPlayer->IsPlaying())
       {
-        UpdateAVInfo();
         bReturn = !m_videoInfo.stereoMode.empty();
       }
       break;
@@ -3302,7 +3301,7 @@ CStdString CGUIInfoManager::GetMultiInfoLabel(const GUIInfo &info, int contextWi
   }
   else if (info.m_info == PLAYER_SEEKOFFSET)
   {
-    CStdString seekOffset = StringUtils::SecondsToTimeString(abs(m_seekOffset), (TIME_FORMAT)info.GetData1());
+    CStdString seekOffset = StringUtils::SecondsToTimeString(abs(m_seekOffset / 1000), (TIME_FORMAT)info.GetData1());
     if (m_seekOffset < 0)
       return "-" + seekOffset;
     if (m_seekOffset > 0)
@@ -3694,7 +3693,6 @@ CStdString CGUIInfoManager::GetMusicLabel(int item)
 {
   if (!g_application.m_pPlayer->IsPlaying() || !m_currentFile->HasMusicInfoTag()) return "";
 
-  UpdateAVInfo();
   switch (item)
   {
   case MUSICPLAYER_PLAYLISTLEN:
@@ -4398,7 +4396,7 @@ void CGUIInfoManager::UpdateAVInfo()
 {
   if(g_application.m_pPlayer->IsPlaying())
   {
-    if (!m_AVInfoValid)
+    if (g_dataCacheCore.HasAVInfoChanges())
     {
       SPlayerVideoStreamInfo video;
       SPlayerAudioStreamInfo audio;
@@ -4408,7 +4406,6 @@ void CGUIInfoManager::UpdateAVInfo()
 
       m_videoInfo = video;
       m_audioInfo = audio;
-      m_AVInfoValid = true;
     }
   }
 }

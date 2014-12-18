@@ -28,6 +28,7 @@ FlintXBMC is base on XBMC(Now named Kodi). It integrates the [Flint SDK](http://
 4. Select a MatchStick device.
 5. Play a video; it should now be playing on your TV.
 
+
 ## Links
 * [MatchStick](http://www.matchstick.tv)
 * [OpenFlint](http://openflint.org/)

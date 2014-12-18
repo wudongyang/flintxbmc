@@ -7221,10 +7221,6 @@ msgctxt "#19273"
 msgid "Add-on for the backend to be able to use PVR."
 msgstr "PVRを有効にする、バックエンド対応アドオン"
 
-msgctxt "#19274"
-msgid "Please visit kodi.tv/pvr to learn more."
-msgstr "kodi.tv/pvr に詳しい情報があります"
-
 msgctxt "#19275"
 msgid "Conflict warning"
 msgstr "コンフリクト警告"
@@ -10536,10 +10532,6 @@ msgstr "検索結果のうち、最初の字幕を自動的にダウンロード
 msgctxt "#24128"
 msgid "Configuration has been moved"
 msgstr "設定を移行しました。"
-
-msgctxt "#24129"
-msgid "The configuration of Kodi has been moved to the new location for Kodi. Please refer to http://kodi.wiki/view/Migration_from_Kodi_to_Kodi - this message will not be shown again!"
-msgstr "Kodi の設定は、Kodi の新しい保存場所に移行しました。詳細 : http://kodi.wiki/view/Migration_from_Kodi_to_Kodi 。このメッセージは再表示されません！"
 
 msgctxt "#25000"
 msgid "Notifications"

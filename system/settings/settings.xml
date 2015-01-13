@@ -1984,7 +1984,7 @@
       <group id="1">
         <setting id="services.upnpserver" type="boolean" label="21360" help="36323">
           <level>0</level>
-          <default>false</default>
+          <default>true</default>
           <control type="toggle" />
         </setting>
         <setting id="services.upnpannounce" type="boolean" parent="services.upnpserver" label="20188" help="36324">
